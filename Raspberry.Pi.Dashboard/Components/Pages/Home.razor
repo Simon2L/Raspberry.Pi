@@ -1,7 +1,44 @@
 ﻿@page "/"
+@using System.Net.NetworkInformation
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 
 Welcome to your new app.
+
+<p>@GetCpuTemperature()</p>
+
+@foreach(var ni in NetworkInterface.GetAllNetworkInterfaces())
+{
+    <div>
+        <h3>@ni.Name (@ni.NetworkInterfaceType)</h3>
+        <h4>Operational Status: @ni.OperationalStatus</h4>
+        <ul>
+            @foreach(var ip in ni.GetIPProperties().UnicastAddresses)
+            {
+                <li>@ip.Address</li>
+            }
+        </ul>
+    </div>
+}
+
+
+@code {
+
+    private string GetCpuTemperature()
+    {
+        var path = "/sys/class/thermal/thermal_zone0/temp";
+        try
+        {
+            if (!System.IO.File.Exists(path)) return "CPU Temperature: Not Available";
+        }
+        catch (Exception ex)
+        {
+            return $"Error accessing CPU temperature: {ex.Message}";
+        }
+        string temp = System.IO.File.ReadAllText(path);
+        double cpuTemp = int.Parse(temp) / 1000.0;
+        return $"CPU Temperature: {cpuTemp} °C";
+    }
+}
