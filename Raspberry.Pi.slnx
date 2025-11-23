@@ -1,4 +1,3 @@
 <Solution>
-  <Project Path="Raspberry.Pi.Dashboard/Raspberry.Pi.Dashboard.csproj" />
   <Project Path="Raspberry.Pi/Raspberry.Pi.csproj" />
 </Solution>
