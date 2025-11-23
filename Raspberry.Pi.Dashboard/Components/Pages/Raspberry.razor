@@ -2,7 +2,7 @@
 @using System.Net.NetworkInformation
 <h3>Raspberry</h3>
 
-<MudText Typo="Typo.h3" GutterBottom="true">@GetCpuTemperature()</MudText>
+<MudText Typo="Typo.h3" GutterBottom="true">@CpuTemperature</MudText>
 
 <MudTable Items="GetProperties()" Hover="true" Breakpoint="Breakpoint.Sm">
     <HeaderContent>
@@ -35,7 +35,7 @@
     }
 </MudPaper>
 
-@code {
+    @code {
 
     private Dictionary<string, string> GetProperties()
     {
@@ -52,6 +52,18 @@
         };
     }
 
+    private string CpuTemperature = "";
+
+    Timer? timer;
+    protected override void OnInitialized()
+    {
+        timer = new Timer(async _ =>
+        {
+            CpuTemperature = GetCpuTemperature();
+            await InvokeAsync(StateHasChanged);
+        }, null, 0, 1000);
+    }
+
     private string GetCpuTemperature()
     {
         var path = "/sys/class/thermal/thermal_zone0/temp";
@@ -66,5 +78,10 @@
         string temp = System.IO.File.ReadAllText(path);
         double cpuTemp = int.Parse(temp) / 1000.0;
         return $"CPU Temperature: {cpuTemp} °C";
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
     }
 }
