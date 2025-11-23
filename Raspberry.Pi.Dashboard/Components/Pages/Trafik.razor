@@ -4,31 +4,22 @@
 
 <PageTitle>Trafik</PageTitle>
 
-@if (isLoading)
-{
-    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
-}
-else if (loadError)
+@if (loadError)
 {
     <MudAlert Severity="Severity.Error">Failed to load depatures. Please try again later.</MudAlert>
 }
 else if (departuresResponse != null && departuresResponse.Departures.Count > 0)
 {
-    <MudText Typo="Typo.h4" GutterBottom="true">Senast uppdaterad @departuresResponse.LastUpdated.ToString("HH:mm")</MudText>
-    <MudTable Items="departuresResponse.Departures" Hover="true" Breakpoint="Breakpoint.Sm">
-        <HeaderContent>
-            <MudTh>Typ</MudTh>
-            <MudTh>Destination</MudTh>
-            <MudTh>Display</MudTh>
-            <MudTh>Linje</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd>@context.Line.TransportMode</MudTd>
-            <MudTd>@context.Destination</MudTd>
-            <MudTd>@context.Display</MudTd>
-            <MudTd>@context.Line.GroupOfLines</MudTd>
-        </RowTemplate>
-    </MudTable>
+    <MudText Typo="Typo.h4" GutterBottom="true">@departuresResponse?.LastUpdated.ToString("HH:mm")</MudText>
+
+    <MudDataGrid Loading="@isLoading" Items="departuresResponse?.Departures">
+        <Columns>
+            <PropertyColumn Property="x => x.Line.TransportMode" Title="Typ" />
+            <PropertyColumn Property="x => x.Destination" Title="Destination"/>
+            <PropertyColumn Property="x => x.Display" Title="Ankomst"/>
+            <PropertyColumn Property="x => x.Line.GroupOfLines" Title="Linje"/>
+        </Columns>
+    </MudDataGrid>
 }
 else
 {
