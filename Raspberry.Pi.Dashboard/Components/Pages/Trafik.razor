@@ -1,0 +1,57 @@
+﻿@page "/trafik"
+@using global::Raspberry.Pi.Dashboard.Integration
+@inject ISLApiService SLApiSerivce
+
+<h3>Trafik</h3>
+
+@if (isLoading)
+{
+    <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+}
+else if (loadError)
+{
+    <MudAlert Severity="Severity.Error">Failed to load depatures. Please try again later.</MudAlert>
+}
+else if (departures != null && departures.Count > 0)
+{
+    <MudTable Items="departures" Hover="true" Breakpoint="Breakpoint.Sm">
+        <HeaderContent>
+            <MudTh>Typ</MudTh>
+            <MudTh>Destination</MudTh>
+            <MudTh>Display</MudTh>
+            <MudTh>Linje</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Line.TransportMode</MudTd>
+            <MudTd>@context.Destination</MudTd>
+            <MudTd>@context.Display</MudTd>
+            <MudTd>@context.Line.GroupOfLines</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+else
+{
+    <MudText>No depatures available.</MudText>
+}
+
+@code {
+    private List<Departure>? departures;
+    private bool isLoading = true;
+    private bool loadError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            departures = await SLApiSerivce.GetDeparturesAsync();
+        }
+        catch
+        {
+            loadError = true;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

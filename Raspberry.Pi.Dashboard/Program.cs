@@ -1,9 +1,17 @@
 using MudBlazor.Services;
 using Raspberry.Pi.Dashboard.Components;
+using Raspberry.Pi.Dashboard.Integration;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.UseUrls("http://0.0.0.0:5000");
+
+builder.Services.AddHttpClient<ISLApiService, SLApiService>(client =>
+{
+    client.BaseAddress = new Uri("https://transport.integration.sl.se/v1/");
+});
+
+    //sites/9296/departures
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
