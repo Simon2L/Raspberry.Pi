@@ -1,18 +1,29 @@
-﻿using System.Text.Json.Serialization;
+﻿using Microsoft.Extensions.Caching.Memory;
+using System.Text.Json.Serialization;
 
 namespace Raspberry.Pi.Dashboard.Integration;
 
 public interface ISLApiService
 {
-    Task<List<Departure>> GetDeparturesAsync(CancellationToken cancellationToken = default);
+    Task<DeparturesResponse> GetDeparturesAsync(CancellationToken cancellationToken = default);
 }
 
-public class SLApiService(HttpClient httpClient, ILogger<SLApiService> logger) : ISLApiService
+public class SLApiService(HttpClient httpClient, ILogger<SLApiService> logger, IMemoryCache cache) : ISLApiService
 {
     private readonly HttpClient _httpClient = httpClient;
     private readonly ILogger<SLApiService> _logger = logger;
+    private readonly IMemoryCache _cache = cache;
 
-    public async Task<List<Departure>> GetDeparturesAsync(CancellationToken cancellationToken)
+    public async Task<DeparturesResponse> GetDeparturesAsync(CancellationToken cancellationToken)
+    {
+        return await _cache.GetOrCreateAsync("departures", async entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
+            return await FetchDeparturesAsync(cancellationToken);
+        }) ?? new();
+    }
+
+    private async Task<DeparturesResponse> FetchDeparturesAsync(CancellationToken cancellationToken)
     {
         try
         {
@@ -20,13 +31,12 @@ public class SLApiService(HttpClient httpClient, ILogger<SLApiService> logger) :
                 "sites/9296/departures",
                 cancellationToken
             );
-
-            return result?.Departures ?? [];
+            return result ?? new();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "API error fetching departures");
-            return [];
+            return new();
         }
     }
 }
@@ -35,6 +45,9 @@ public class DeparturesResponse
 {
     [JsonPropertyName("departures")]
     public List<Departure> Departures { get; set; } = new();
+    
+    [JsonIgnore]
+    public DateTime LastUpdated { get; set; } = DateTime.Now;
 }
 
 public class Departure

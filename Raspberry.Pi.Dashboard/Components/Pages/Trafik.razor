@@ -2,7 +2,7 @@
 @using global::Raspberry.Pi.Dashboard.Integration
 @inject ISLApiService SLApiSerivce
 
-<h3>Trafik</h3>
+<PageTitle>Trafik</PageTitle>
 
 @if (isLoading)
 {
@@ -12,9 +12,10 @@ else if (loadError)
 {
     <MudAlert Severity="Severity.Error">Failed to load depatures. Please try again later.</MudAlert>
 }
-else if (departures != null && departures.Count > 0)
+else if (departuresResponse != null && departuresResponse.Departures.Count > 0)
 {
-    <MudTable Items="departures" Hover="true" Breakpoint="Breakpoint.Sm">
+    <MudText Typo="Typo.h4" GutterBottom="true">Senast uppdaterad @departuresResponse.LastUpdated.ToString("HH:mm")</MudText>
+    <MudTable Items="departuresResponse.Departures" Hover="true" Breakpoint="Breakpoint.Sm">
         <HeaderContent>
             <MudTh>Typ</MudTh>
             <MudTh>Destination</MudTh>
@@ -35,7 +36,7 @@ else
 }
 
 @code {
-    private List<Departure>? departures;
+    private DeparturesResponse? departuresResponse;
     private bool isLoading = true;
     private bool loadError = false;
 
@@ -43,7 +44,7 @@ else
     {
         try
         {
-            departures = await SLApiSerivce.GetDeparturesAsync();
+            departuresResponse = await SLApiSerivce.GetDeparturesAsync();
         }
         catch
         {
