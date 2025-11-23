@@ -1,5 +1,70 @@
-﻿<h3>Raspberry</h3>
+﻿@page "/raspberry"
+@using System.Net.NetworkInformation
+<h3>Raspberry</h3>
+
+<MudText Typo="Typo.h3" GutterBottom="true">@GetCpuTemperature()</MudText>
+
+<MudTable Items="GetProperties()" Hover="true" Breakpoint="Breakpoint.Sm">
+    <HeaderContent>
+        <MudTh>Value</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.Key</MudTd>
+        <MudTd>@context.Value</MudTd>
+    </RowTemplate>
+</MudTable>
+
+<MudPaper>
+    <MudText Typo="Typo.h5" GutterBottom="true">Network Interfaces</MudText>
+    @foreach(var ni in NetworkInterface.GetAllNetworkInterfaces())
+    {
+        <MudList T="string">
+            <MudListItem>
+                <MudText Typo="Typo.h6">@ni.Name (@ni.NetworkInterfaceType)</MudText>
+            </MudListItem>
+            <MudListItem>
+                <MudText>Operational Status: @ni.OperationalStatus</MudText>
+            </MudListItem>
+            @foreach (var ip in ni.GetIPProperties().UnicastAddresses)
+            {
+                <MudListItem>
+                    <MudText>@ip.Address</MudText>
+                </MudListItem>
+            }
+        </MudList>
+    }
+</MudPaper>
 
 @code {
 
+    private Dictionary<string, string> GetProperties()
+    {
+        return new Dictionary<string, string>
+        {
+            { "Machine Name", Environment.MachineName },
+            { "OS Version", Environment.OSVersion.ToString() },
+            { "Processor Count", Environment.ProcessorCount.ToString() },
+            { "System Directory", Environment.SystemDirectory },
+            { "User Domain Name", Environment.UserDomainName },
+            { "User Name", Environment.UserName },
+            { "Is 64 Bit OS", Environment.Is64BitOperatingSystem.ToString() },
+            { "Is 64 Bit Process", Environment.Is64BitProcess.ToString() },
+        };
+    }
+
+    private string GetCpuTemperature()
+    {
+        var path = "/sys/class/thermal/thermal_zone0/temp";
+        try
+        {
+            if (!System.IO.File.Exists(path)) return "CPU Temperature: Not Available";
+        }
+        catch (Exception ex)
+        {
+            return $"Error accessing CPU temperature: {ex.Message}";
+        }
+        string temp = System.IO.File.ReadAllText(path);
+        double cpuTemp = int.Parse(temp) / 1000.0;
+        return $"CPU Temperature: {cpuTemp} °C";
+    }
 }
