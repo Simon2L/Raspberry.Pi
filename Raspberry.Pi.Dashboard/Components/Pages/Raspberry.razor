@@ -61,7 +61,7 @@
         {
             CpuTemperature = GetCpuTemperature();
             await InvokeAsync(StateHasChanged);
-        }, null, 0, 1000);
+        }, null, 0, 10000);
     }
 
     private string GetCpuTemperature()
