@@ -10,7 +10,7 @@
 }
 else if (departuresResponse != null && departuresResponse.Departures.Count > 0)
 {
-    <MudText Style="margin-top: 1rem" Typo="Typo.h4" GutterBottom="true">@departuresResponse?.LastUpdated.ToString("HH:mm")</MudText>
+    <MudText Typo="Typo.h4" GutterBottom="true">@departuresResponse?.LastUpdated.ToString("HH:mm")</MudText>
 
     <MudDataGrid Loading="@isLoading" Items="departuresResponse?.Departures">
         <Columns>
