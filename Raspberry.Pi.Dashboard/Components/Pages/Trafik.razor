@@ -11,25 +11,18 @@
 {
     <MudAlert Severity="Severity.Error">Failed to load depatures. Please try again later.</MudAlert>
 }
-else if (departuresResponse != null && departuresResponse.Departures.Count > 0)
-{
-    <MudText Typo="Typo.h4" GutterBottom="true">@departuresResponse?.LastUpdated.ToString("HH:mm")</MudText>
+<MudText Typo="Typo.h4" GutterBottom="true">@departuresResponse?.LastUpdated.ToString("HH:mm")</MudText>
 
-    <MudDataGrid Loading="@isLoading" Items="departuresResponse?.Departures">
-        <Columns>
-            <PropertyColumn Property="x => x.Line.TransportMode" Title="Typ" />
-            <PropertyColumn Property="x => x.Destination" Title="Destination"/>
-            <PropertyColumn Property="x => x.Display" Title="Ankomst"/>
-            <PropertyColumn Property="x => x.Scheduled.ToShortTimeString()" Title="Scheduled"/>
-            <PropertyColumn Property="x => x.Expected.ToShortTimeString()" Title="Expected"/>
-            <PropertyColumn Property="x => x.Line.GroupOfLines" Title="Linje"/>
-        </Columns>
-    </MudDataGrid>
-}
-else
-{
-    <MudText>No depatures available.</MudText>
-}
+<MudDataGrid Loading="@isLoading" Items="departuresResponse?.Departures">
+    <Columns>
+        <PropertyColumn Property="x => x.Line.TransportMode" Title="Typ" />
+        <PropertyColumn Property="x => x.Destination" Title="Destination" />
+        <PropertyColumn Property="x => x.Display" Title="Ankomst" />
+        <PropertyColumn Property="x => x.Scheduled.ToShortTimeString()" Title="Scheduled" />
+        <PropertyColumn Property="x => x.Expected.ToShortTimeString()" Title="Expected" />
+        <PropertyColumn Property="x => x.Line.GroupOfLines" Title="Linje" />
+    </Columns>
+</MudDataGrid>
 
 @code {
     private DeparturesResponse? departuresResponse;
@@ -38,6 +31,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await Task.Delay(500);
         try
         {
             departuresResponse = await SLApiSerivce.GetDeparturesAsync();
