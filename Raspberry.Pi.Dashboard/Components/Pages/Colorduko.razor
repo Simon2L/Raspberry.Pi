@@ -3,52 +3,42 @@
 
 <PageTitle>Colorduko</PageTitle>
 
-<MudGrid Spacing="1" Class="m-auto">
-    @for (int row = 0; row < board.GetLength(0); row++)
-    {
-        @for (int col = 0; col < board.GetLength(1); col++)
-        {
-            ColorDukoColors cellValue = board[col, row];
-            int rowIndex = row;
-            int colIndex = col;
-            <MudItem>
-@*                 <MudPaper Elevation="4" Class="d-flex justify-center align-center" Width="90px" Height="90px">
-                    @($"{cellValue} (x:{colIndex}, y:{rowIndex})")
-                </MudPaper> *@
-                <MudMenu Color="ToColor(cellValue)" Label="@cellValue.ToString()" Style="height: 90px; width: 90px">
-                    <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Red)">Red</MudMenuItem>
-                    <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Blue)">Blue</MudMenuItem>
-                    <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Green)">Green</MudMenuItem>
-                    <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Yellow)">Yellow</MudMenuItem>
-                    <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Purple)">Purple</MudMenuItem>
-                    <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Orange)">Orange</MudMenuItem>
-                    <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Cyan)">Cyan</MudMenuItem>
-                    <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Magenta)">Magenta</MudMenuItem>
-                    <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Lime)">Lime</MudMenuItem>
-                    <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.None)">Clear</MudMenuItem>
-                </MudMenu>
-            </MudItem>
-            if (col % 8 == 0 && col != 0)
+<MudCard>
+    <MudCardContent Class="d-flex justify-content-center">
+        <MudGrid Spacing="1">
+            @for (int row = 0; row < board.GetLength(0); row++)
             {
-                <MudFlexBreak />
+                @for (int col = 0; col < board.GetLength(1); col++)
+                {
+                    ColorDukoColors cellValue = board[col, row];
+                    int rowIndex = row;
+                    int colIndex = col;
+                    <MudItem>
+                        <MudMenu Color="ToColor(cellValue)" Label="@cellValue.ToString()" Style="height: 90px; width: 90px">
+                            <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Red)">Red</MudMenuItem>
+                            <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Blue)">Blue</MudMenuItem>
+                            <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Green)">Green</MudMenuItem>
+                            <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Yellow)">Yellow</MudMenuItem>
+                            <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Purple)">Purple</MudMenuItem>
+                            <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Orange)">Orange</MudMenuItem>
+                            <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Cyan)">Cyan</MudMenuItem>
+                            <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Magenta)">Magenta</MudMenuItem>
+                            <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.Lime)">Lime</MudMenuItem>
+                            <MudMenuItem OnClick="() => HandleColorChange(colIndex, rowIndex, ColorDukoColors.None)">Clear</MudMenuItem>
+                        </MudMenu>
+                    </MudItem>
+                    if (col % 8 == 0 && col != 0)
+                    {
+                        <MudDivider />
+                    }
+                }
             }
-        }
-    }
 
-</MudGrid>
+        </MudGrid>
+    </MudCardContent>
+</MudCard>
 
-<MudGrid Class="mt-5">
-    @foreach (int i in board)
-    {
-        int j = i;
-        <MudItem>
-            <MudPaper Elevation="4" Class="d-flex justify-center align-center" Width="60px" Height="60px">
-                @j
-            </MudPaper>
-        </MudItem>
-    }
-</MudGrid>
-    @code {
+@code {
     private ColorDukoColors[,] board = new ColorDukoColors[9, 9];
 
     private void HandleColorChange(int col, int row, ColorDukoColors color)
@@ -102,12 +92,6 @@
         return true;
     }
 
-
-    @*
-        (0,0) (0,3) (0,6)
-        (3,0) (3,3) (3,6)
-        (6,6) (6,3) (6,6)
-    *@
     private bool CheckBox(int col, int row, ColorDukoColors color)
     {
         int startRow = (int)Math.Floor(row / 3.0) * 3;
