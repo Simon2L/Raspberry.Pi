@@ -1,0 +1,54 @@
+﻿@page "/tree"
+
+<PageTitle>Tree</PageTitle>
+
+<MudPaper Class="pa-4">
+    <MudText Typo="Typo.h5">Tree View Example</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="my-2">@rootNode.Description</MudButton>
+
+    @foreach (var child in rootNode.Children)
+    {
+        <MudButton Variant="Variant.Filled" Color="Color.Error" Class="my-2">@child.Description</MudButton>
+        @foreach (var grandChild in child.Children)
+        {
+            <MudButton Variant="Variant.Filled" Color="Color.Info" Class="my-2">@grandChild.Description</MudButton>
+            @foreach (var greatGrandChild in grandChild.Children)
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Warning" Class="my-2">@greatGrandChild.Description</MudButton>
+            }
+        }
+    }
+</MudPaper>
+
+@* <MudTreeView Items="new List<TreeNode> { rootNode }" Dense="true">
+    <ItemTemplate>
+        <MudTreeViewItem Text="@context.Description" Icon="@Icons.Material.Filled.Folder">
+            @if (context.Children != null && context.Children.Count > 0)
+            {
+                <MudTreeView Items="context.Children" Dense="true">
+                    <ItemTemplate>
+                        <MudTreeViewItem Text="@context.Description" Icon="@Icons.Material.Filled.InsertDriveFile" />
+                    </ItemTemplate>
+                </MudTreeView>
+            }
+        </MudTreeViewItem>
+    </ItemTemplate>
+</MudTreeView> *@
+
+@code {
+    private TreeNode rootNode = new("Loading", []);
+
+    protected override void OnInitialized()
+    {
+        TreeNode endNode = new("End Node", []);
+        TreeNode nextNode = new("Middle Node", [endNode]);
+        TreeNode middleNode = new("Child Node", [nextNode]);
+        rootNode = new TreeNode("Child Node", [middleNode]);
+    }
+
+    private class TreeNode(string description, List<TreeNode> children)
+    {
+        public string Description { get; set; } = description;
+        public List<TreeNode> Children { get; set; } = children;
+    }
+}
