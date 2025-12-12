@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 public class GoveeClient
 {
     private static readonly string ApiKey = "560fbc36-952c-42f7-925b-a7151394f3c5";
-    private static readonly string DeviceMac = "98:17:3C:57:DD:EE";
+    private static readonly string DeviceMac = "25:F9:D6:09:86:46:08:31";
     private static readonly string Sku = "H618A";
     private static readonly string BaseUrl = "https://openapi.api.govee.com/router/api/v1/device/control";
 
