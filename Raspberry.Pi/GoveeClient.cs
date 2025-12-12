@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-public class GoveeApi
+public class GoveeClient
 {
     private static readonly string ApiKey = "560fbc36-952c-42f7-925b-a7151394f3c5";
     private static readonly string DeviceMac = "98:17:3C:57:DD:EE";
@@ -15,7 +15,7 @@ public class GoveeApi
 
     private static readonly HttpClient client = new();
 
-    public GoveeApi()
+    public GoveeClient()
     {
         client.DefaultRequestHeaders.Add("Govee-API-Key", ApiKey);
     }

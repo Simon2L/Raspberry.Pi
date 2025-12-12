@@ -1,7 +1,7 @@
 ﻿using Raspberry.Pi;
 
 
-var goveeApi = new GoveeApi();
+var goveeApi = new GoveeClient();
 await goveeApi.TurnOnOff(true);
 await goveeApi.SetColorRgb(255, 255, 255);
 await goveeApi.SetBrightness(10);
