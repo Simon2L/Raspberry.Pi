@@ -3,6 +3,10 @@
 
 var goveeClient = new GoveeClient();
 // await goveeClient.GetDevices();
+await goveeClient.TurnOnOff(true);
+await goveeClient.SetColorRgb(255, 255, 255);
+await goveeClient.SetBrightness(10);
+
 
 var sensor1 = new Vcnl4010(busId: 1);
 var sensor2 = new Vcnl4010(busId: 3);
