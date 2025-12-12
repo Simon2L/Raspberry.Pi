@@ -1,10 +1,10 @@
 ﻿using Raspberry.Pi;
 
 
-
-await GoveeApi.TurnOnOff(true);
-await GoveeApi.SetColorRgb(255, 255, 255);
-await GoveeApi.SetBrightness(10);
+var goveeApi = new GoveeApi();
+await goveeApi.TurnOnOff(true);
+await goveeApi.SetColorRgb(255, 255, 255);
+await goveeApi.SetBrightness(10);
 
 var sensor1 = new Vcnl4010(busId: 1);
 var sensor2 = new Vcnl4010(busId: 3);
@@ -19,23 +19,23 @@ while (true)
 
     if (proximity1 > 5000)
     {
-        await GoveeApi.SetSegmentBrightness([0, 1, 2, 3, 4, 5, 6], 100);
+        await goveeApi.SetSegmentBrightness([0, 1, 2, 3, 4, 5, 6], 100);
         segment1On = true;
     }
     else if (segment1On)
     {
-        await GoveeApi.SetSegmentBrightness([0, 1, 2, 3, 4, 5, 6], 10);
+        await goveeApi.SetSegmentBrightness([0, 1, 2, 3, 4, 5, 6], 10);
         segment2On = false;
     }
 
     if (proximity2 > 5000)
     {
-        await GoveeApi.SetSegmentBrightness([7, 8, 9, 10, 11, 12, 13, 14], 100);
+        await goveeApi.SetSegmentBrightness([7, 8, 9, 10, 11, 12, 13, 14], 100);
         segment2On = true;
     }
     else if (segment2On)
     {
-        await GoveeApi.SetSegmentBrightness([7, 8, 9, 10, 11, 12, 13, 14], 10);
+        await goveeApi.SetSegmentBrightness([7, 8, 9, 10, 11, 12, 13, 14], 10);
         segment2On = false;
     }
 

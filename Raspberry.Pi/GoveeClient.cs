@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-public static class GoveeApi
+public class GoveeApi
 {
     private static readonly string ApiKey = "560fbc36-952c-42f7-925b-a7151394f3c5";
     private static readonly string DeviceMac = "98:17:3C:57:DD:EE";
@@ -15,19 +15,12 @@ public static class GoveeApi
 
     private static readonly HttpClient client = new();
 
-    static void Main()
+    public GoveeApi()
     {
         client.DefaultRequestHeaders.Add("Govee-API-Key", ApiKey);
-
-        // Examples
-        //await TurnOnOff(true);
-        //await SetBrightness(10);
-        //await SetColorRgb(255, 255, 255); // Red
-        //await SetSegmentBrightness(new int[] { 0, 1, 2 }, 60);
-        //await SetSegmentColor(new int[] { 0, 1, 2 }, 0, 255, 0); // Green
     }
 
-    private static async Task SendCommand(object payload)
+    private async Task SendCommand(object payload)
     {
         var requestObj = new
         {
@@ -48,7 +41,7 @@ public static class GoveeApi
     }
 
     // Turn device on/off
-    public static async Task TurnOnOff(bool on)
+    public async Task TurnOnOff(bool on)
     {
         var payload = new
         {
@@ -66,7 +59,7 @@ public static class GoveeApi
     }
 
     // Set brightness 0-100
-    public static async Task SetBrightness(int brightness)
+    public async Task SetBrightness(int brightness)
     {
         var payload = new
         {
@@ -84,7 +77,7 @@ public static class GoveeApi
     }
 
     // Set RGB color
-    public static async Task SetColorRgb(int r, int g, int b)
+    public async Task SetColorRgb(int r, int g, int b)
     {
         int rgb = (r << 16) + (g << 8) + b;
 
@@ -104,7 +97,7 @@ public static class GoveeApi
     }
 
     // Set segmented brightness
-    public static async Task SetSegmentBrightness(int[] segments, int brightness)
+    public async Task SetSegmentBrightness(int[] segments, int brightness)
     {
         var payload = new
         {
@@ -126,7 +119,7 @@ public static class GoveeApi
     }
 
     // Set segmented color
-    public static async Task SetSegmentColor(int[] segments, int r, int g, int b)
+    public async Task SetSegmentColor(int[] segments, int r, int g, int b)
     {
         int rgb = (r << 16) + (g << 8) + b;
 
