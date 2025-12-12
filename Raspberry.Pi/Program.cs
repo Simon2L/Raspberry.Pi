@@ -1,5 +1,7 @@
 ﻿
 
+using Raspberry.Pi;
+
 var sensor1 = new Vcnl4010(busId: 1);
 // var sensor2 = new Vcnl4010(busId: 3);
 
