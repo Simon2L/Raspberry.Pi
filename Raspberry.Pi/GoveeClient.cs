@@ -1,170 +1,152 @@
-﻿using System.Net;
-using System.Net.Sockets;
+﻿namespace Raspberry.Pi;
+
+using System;
+using System.Net.Http;
 using System.Text;
-using System.Text.Json.Nodes;
+using System.Text.Json;
+using System.Threading.Tasks;
 
-namespace Raspberry.Pi;
-
-public class GoveeLanClient
+public static class GoveeApi
 {
-    private const string MULTICAST_ADDR = "239.255.255.250";
-    private const int DISCOVERY_PORT = 4001;
-    private const int LISTEN_PORT = 4002;
-    private const int CONTROL_PORT = 4003;
+    private static readonly string ApiKey = "560fbc36-952c-42f7-925b-a7151394f3c5";
+    private static readonly string DeviceMac = "98:17:3C:57:DD:EE";
+    private static readonly string Sku = "H618A";
+    private static readonly string BaseUrl = "https://openapi.api.govee.com/router/api/v1/device/control";
 
-    public string DeviceIp { get; private set; }
-    public string DeviceId { get; private set; }
-    public string Model { get; private set; }
+    private static readonly HttpClient client = new();
 
-    // ---------------------------
-    // DISCOVERY
-    // ---------------------------
-    public async Task<bool> DiscoverAsync(int timeoutMs = 3000)
+    static void Main()
     {
-        using var scanClient = new UdpClient();
-        scanClient.JoinMulticastGroup(IPAddress.Parse(MULTICAST_ADDR));
+        client.DefaultRequestHeaders.Add("Govee-API-Key", ApiKey);
 
-        // Send scan request
-        var scanMsg = Encoding.UTF8.GetBytes(
-            @"{""msg"":{""cmd"":""scan"",""data"":{""account_topic"":""reserve""}}}"
-        );
+        // Examples
+        //await TurnOnOff(true);
+        //await SetBrightness(10);
+        //await SetColorRgb(255, 255, 255); // Red
+        //await SetSegmentBrightness(new int[] { 0, 1, 2 }, 60);
+        //await SetSegmentColor(new int[] { 0, 1, 2 }, 0, 255, 0); // Green
+    }
 
-        await scanClient.SendAsync(scanMsg, scanMsg.Length, MULTICAST_ADDR, DISCOVERY_PORT);
-
-        using var listener = new UdpClient(LISTEN_PORT);
-        var receiveTask = listener.ReceiveAsync();
-        var completed = await Task.WhenAny(receiveTask, Task.Delay(timeoutMs));
-
-        if (completed != receiveTask)
-            return false; // no response
-
-        var result = receiveTask.Result;
-        string respJson = Encoding.UTF8.GetString(result.Buffer);
-
-        try
+    private static async Task SendCommand(object payload)
+    {
+        var requestObj = new
         {
-            var json = JsonNode.Parse(respJson);
+            requestId = Guid.NewGuid().ToString(),
+            payload
+        };
 
-            DeviceIp = json?["msg"]?["data"]?["ip"]?.ToString();
-            DeviceId = json?["msg"]?["data"]?["device"]?.ToString();
-            Model = json?["msg"]?["data"]?["sku"]?.ToString();
-
-            return DeviceIp != null;
-        }
-        catch
+        var json = JsonSerializer.Serialize(requestObj, new JsonSerializerOptions
         {
-            return false;
-        }
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false
+        });
+
+        using var content = new StringContent(json, Encoding.UTF8, "application/json");
+        var response = await client.PostAsync(BaseUrl, content);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        Console.WriteLine(responseContent);
     }
 
-    // ---------------------------
-    // SEND ANY COMMAND
-    // ---------------------------
-    private async Task SendCommandAsync(string json)
+    // Turn device on/off
+    public static async Task TurnOnOff(bool on)
     {
-        if (DeviceIp is null)
-            throw new InvalidOperationException("Device not discovered. Call DiscoverAsync() first.");
-
-        using var udp = new UdpClient();
-        udp.Connect(DeviceIp, CONTROL_PORT);
-
-        byte[] bytes = Encoding.UTF8.GetBytes(json);
-        await udp.SendAsync(bytes, bytes.Length);
-    }
-
-    // ---------------------------
-    // BASIC COMMANDS
-    // ---------------------------
-    public Task TurnOnAsync() =>
-        SendCommandAsync(@"{""msg"":{""cmd"":""turn"",""data"":{""value"":1}}}");
-
-    public Task TurnOffAsync() =>
-        SendCommandAsync(@"{""msg"":{""cmd"":""turn"",""data"":{""value"":0}}}");
-
-    public Task SetBrightnessAsync(int value)
-    {
-        value = Math.Clamp(value, 0, 100);
-        return SendCommandAsync(
-            $@"{{""msg"":{{""cmd"":""brightness"",""data"":{{""value"":{value}}}}}}}"
-        );
-    }
-
-    // 2000K - 9000K (0 då r g b)
-    public Task SetColorAsync(int r, int g, int b)
-    {
-        r = Math.Clamp(r, 0, 255);
-        g = Math.Clamp(g, 0, 255);
-        b = Math.Clamp(b, 0, 255);
-
-        return SendCommandAsync(
-            $@"{{""msg"":{{""cmd"":""colorwc"",""data"":{{""color"":{{""r"":{r},""g"":{g},""b"":{b}}},""colorTemInKelvin"":0}}}}}}"
-        );
-
-    }
-
-    // ---------------------------
-    // SEGMENTED LIGHTING
-    // ---------------------------
-    public Task SetSegmentAsync(int start, int end, int r, int g, int b, int brightness = 100)
-    {
-        r = Math.Clamp(r, 0, 255);
-        g = Math.Clamp(g, 0, 255);
-        b = Math.Clamp(b, 0, 255);
-        brightness = Math.Clamp(brightness, 1, 100);
-
-        // include onOff and brightness at the data level to avoid devices interpreting the command as "off"
-        string json =
-        $@"{{
-        ""msg"": {{
-            ""cmd"": ""colorwc"",
-            ""data"": {{
-                ""onOff"": 1,
-                ""brightness"": {brightness},
-                ""segments"": [
-                    {{
-                        ""start"": {start},
-                        ""end"": {end},
-                        ""color"": {{ ""r"": {r}, ""g"": {g}, ""b"": {b} }},
-                        ""colorTemInKelvin"": 0
-                    }}
-                ]
-            }}
-        }}
-    }}";
-
-        return SendCommandAsync(json);
-    }
-
-    public Task SetSegmentBrightnessAsync(int start, int end, int percent, int r, int g, int b)
-    {
-        percent = Math.Clamp(percent, 0, 100);
-        double scale = percent / 100.0;
-
-        int sr = (int)Math.Round(r * scale);
-        int sg = (int)Math.Round(g * scale);
-        int sb = (int)Math.Round(b * scale);
-
-        // use the SetSegmentAsync (which includes onOff + brightness)
-        return SetSegmentAsync(start, end, sr, sg, sb, brightness: Math.Max(1, percent));
-    }
-
-    public Task SetSegmentsAsync((int start, int end, int r, int g, int b)[] segs)
-    {
-        var sb = new StringBuilder();
-        sb.Append(@"{""msg"":{""cmd"":""colorwc"",""data"":{""segments"":[");
-
-        for (int i = 0; i < segs.Length; i++)
+        var payload = new
         {
-            var s = segs[i];
-            sb.Append(
-                $@"{{""start"":{s.start},""end"":{s.end},""r"":{s.r},""g"":{s.g},""b"":{s.b}}}"
-            );
-            if (i < segs.Length - 1)
-                sb.Append(",");
-        }
+            sku = Sku,
+            device = DeviceMac,
+            capability = new
+            {
+                type = "devices.capabilities.on_off",
+                instance = "powerSwitch",
+                value = on ? 1 : 0
+            }
+        };
 
-        sb.Append("]}}}");
+        await SendCommand(payload);
+    }
 
-        return SendCommandAsync(sb.ToString());
+    // Set brightness 0-100
+    public static async Task SetBrightness(int brightness)
+    {
+        var payload = new
+        {
+            sku = Sku,
+            device = DeviceMac,
+            capability = new
+            {
+                type = "devices.capabilities.range",
+                instance = "brightness",
+                value = brightness
+            }
+        };
+
+        await SendCommand(payload);
+    }
+
+    // Set RGB color
+    public static async Task SetColorRgb(int r, int g, int b)
+    {
+        int rgb = (r << 16) + (g << 8) + b;
+
+        var payload = new
+        {
+            sku = Sku,
+            device = DeviceMac,
+            capability = new
+            {
+                type = "devices.capabilities.color_setting",
+                instance = "colorRgb",
+                value = rgb
+            }
+        };
+
+        await SendCommand(payload);
+    }
+
+    // Set segmented brightness
+    public static async Task SetSegmentBrightness(int[] segments, int brightness)
+    {
+        var payload = new
+        {
+            sku = Sku,
+            device = DeviceMac,
+            capability = new
+            {
+                type = "devices.capabilities.segment_color_setting",
+                instance = "segmentedBrightness",
+                value = new
+                {
+                    segment = segments,
+                    brightness = brightness
+                }
+            }
+        };
+
+        await SendCommand(payload);
+    }
+
+    // Set segmented color
+    public static async Task SetSegmentColor(int[] segments, int r, int g, int b)
+    {
+        int rgb = (r << 16) + (g << 8) + b;
+
+        var payload = new
+        {
+            sku = Sku,
+            device = DeviceMac,
+            capability = new
+            {
+                type = "devices.capabilities.segment_color_setting",
+                instance = "segmentedColorRgb",
+                value = new
+                {
+                    segment = segments,
+                    rgb = rgb
+                }
+            }
+        };
+
+        await SendCommand(payload);
     }
 }
+
