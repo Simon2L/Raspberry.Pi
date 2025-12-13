@@ -31,7 +31,7 @@ while (true)
     else if (proximity1 <= proximityThreshold && segment1On)
     {
         await goveeClient.SetSegmentBrightness([0, 1, 2, 3, 4, 5, 6], 5);
-        segment1On = false;  // Fixed this line
+        segment1On = false;
     }
 
     // Segment 2 logic

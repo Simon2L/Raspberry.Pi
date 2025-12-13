@@ -9,5 +9,6 @@
 
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="8.*" />
+    <PackageReference Include="System.Device.Gpio" Version="4.0.1" />
   </ItemGroup>
 </Project>

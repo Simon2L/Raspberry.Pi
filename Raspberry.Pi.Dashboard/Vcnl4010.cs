@@ -1,6 +1,6 @@
 ﻿using System.Device.I2c;
 
-namespace Raspberry.Pi;
+namespace Raspberry.Pi.Dashboard;
 
 public class Vcnl4010
 {

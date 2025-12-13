@@ -1,4 +1,5 @@
 using MudBlazor.Services;
+using Raspberry.Pi.Dashboard;
 using Raspberry.Pi.Dashboard.Components;
 using Raspberry.Pi.Dashboard.Integration;
 
@@ -11,7 +12,19 @@ builder.Services.AddHttpClient<ISLApiService, SLApiService>(client =>
     client.BaseAddress = new Uri("https://transport.integration.sl.se/v1/");
 });
 
-    //sites/9296/departures
+builder.Services.AddHttpClient<GoveeClient>(client =>
+{
+    client.BaseAddress = new Uri("https://openapi.api.govee.com/router/api/v1/");
+    client.DefaultRequestHeaders.Add("Govee-API-Key", "560fbc36-952c-42f7-925b-a7151394f3c5");
+});
+
+builder.Services.AddSingleton<ProximitySensorReaderBackgroundService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<ProximitySensorReaderBackgroundService>());
+builder.Services.AddSingleton<ProximityEventHandler>();
+builder.Services.AddSingleton<ProximityUiState>();
+
+
+//sites/9296/departures
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
