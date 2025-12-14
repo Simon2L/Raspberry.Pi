@@ -11,14 +11,33 @@ public enum Sensor
 
 public class ProximitySensorReaderBackgroundService : BackgroundService
 {
-    private readonly Vcnl4010 _sensor1 = new(busId: 1);
-    private readonly Vcnl4010 _sensor2 = new(busId: 3);
+    private readonly Vcnl4010 _sensor1;
+    private readonly Vcnl4010 _sensor2;
     private const int ProximityEventThreshold = 3000;
+    private readonly bool SensorsFailedToInitialize = false;
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+    public ProximitySensorReaderBackgroundService()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+    {
+        try
+        {
+            _sensor1 = new(busId: 1);
+            _sensor2 = new(busId: 3);
+        }
+        catch
+        {
+            Console.WriteLine("Could not connect to the sensors.");
+            SensorsFailedToInitialize = true;
+        }
+    }
 
     public event EventHandler<ProximityEvent>? ProximityThresholdReached;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if (SensorsFailedToInitialize) await StopAsync(stoppingToken);
+
         while (!stoppingToken.IsCancellationRequested)
         {
             var proximity1 = _sensor1.GetProximity();
@@ -41,5 +60,6 @@ public class ProximitySensorReaderBackgroundService : BackgroundService
             await Task.Delay(1000, stoppingToken);
         }
     }
+
 }
 
