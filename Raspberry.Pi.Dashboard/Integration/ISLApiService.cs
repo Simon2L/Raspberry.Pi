@@ -5,7 +5,14 @@ namespace Raspberry.Pi.Dashboard.Integration;
 
 public interface ISLApiService
 {
-    Task<DeparturesResponse> GetDeparturesAsync(CancellationToken cancellationToken = default);
+    Task<DeparturesResponse> GetDeparturesAsync(Sites site, CancellationToken cancellationToken = default);
+}
+
+public enum Sites
+{
+    Zinken = 9302,
+    Kista = 9296,
+    Telefonplan = 9263
 }
 
 public class SLApiService(HttpClient httpClient, ILogger<SLApiService> logger, IMemoryCache cache) : ISLApiService
@@ -14,21 +21,26 @@ public class SLApiService(HttpClient httpClient, ILogger<SLApiService> logger, I
     private readonly ILogger<SLApiService> _logger = logger;
     private readonly IMemoryCache _cache = cache;
 
-    public async Task<DeparturesResponse> GetDeparturesAsync(CancellationToken cancellationToken)
+    public async Task<DeparturesResponse> GetDeparturesAsync(Sites site, CancellationToken cancellationToken)
     {
-        return await _cache.GetOrCreateAsync("departures", async entry =>
+        return await _cache.GetOrCreateAsync(site, async entry =>
         {
             entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5);
-            return await FetchDeparturesAsync(cancellationToken);
+            return await FetchDeparturesAsync(site, cancellationToken);
         }) ?? new();
     }
 
-    private async Task<DeparturesResponse> FetchDeparturesAsync(CancellationToken cancellationToken)
+    // 9302 ZINKEN
+    // 9296 KISTA
+    // 9263 TELEFONPLAN
+
+    // https://www.trafiklab.se/sv/api/our-apis/sl/transport/#/default/Departures
+    private async Task<DeparturesResponse> FetchDeparturesAsync(Sites site, CancellationToken cancellationToken)
     {
         try
         {
             var result = await _httpClient.GetFromJsonAsync<DeparturesResponse>(
-                "sites/9296/departures",
+                $"sites/{(int)site}/departures?forecast=30",
                 cancellationToken
             );
             return result ?? new();

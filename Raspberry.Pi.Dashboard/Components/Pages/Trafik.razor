@@ -31,7 +31,7 @@
         await Task.Delay(500);
         try
         {
-            departuresResponse = await SLApiSerivce.GetDeparturesAsync();
+            departuresResponse = await SLApiSerivce.GetDeparturesAsync(Sites.Zinken);
         }
         catch
         {
