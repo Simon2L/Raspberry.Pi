@@ -49,17 +49,6 @@ public class GoveeClient(HttpClient httpClient)
         return SendCommandAsync(capability);
     }
 
-    public Task SetBrightnessAsync(int brightness /* 1-100 */)
-    {
-        var capability = new
-        {
-            type = "devices.capabilities.range",
-            instance = "brightness",
-            value = brightness
-        };
-        return SendCommandAsync(capability);
-    }
-
     public Task SetColorRgbAsync(int r, int g, int b)
     {
         int rgb = RgbToInt(r, g, b);
@@ -83,31 +72,111 @@ public class GoveeClient(HttpClient httpClient)
         return SendCommandAsync(capability);
     }
 
-    /// <summary>
-    /// 0-14 segments?
-    /// </summary>
-    /// <param name="segments">0 to 14?</param>
-    /// <param name="r"></param>
-    /// <param name="g"></param>
-    /// <param name="b"></param>
-    /// <returns></returns>
-    public Task SetSegmentColorAsync(int[] segments, int r, int g, int b)
+    public async Task SetSegmentBrightnessSmoothAsync(
+            int[] segments,
+            int targetBrightness,
+            TimeSpan duration,
+            CancellationToken cancellationToken = default)
     {
-        int rgb = RgbToInt(r, g, b);
-        var capability = new
+        const int steps = 10; // Number of incremental changes
+        const int minDelayMs = 50; // Minimum delay between API calls
+
+        // Calculate delay between steps
+        int delayMs = Math.Max(minDelayMs, (int)(duration.TotalMilliseconds / steps));
+
+        // Get current brightness - you'll need to track this or fetch from device
+        int currentBrightness = await GetCurrentBrightnessAsync(segments);
+
+        int brightnessStep = (targetBrightness - currentBrightness) / steps;
+
+        for (int i = 1; i <= steps; i++)
         {
-            type = "devices.capabilities.segment_color_setting",
-            instance = "segmentedColorRgb",
-            value = new
+            cancellationToken.ThrowIfCancellationRequested();
+
+            int newBrightness = currentBrightness + (brightnessStep * i);
+
+            // Clamp to 1-100 range
+            newBrightness = Math.Clamp(newBrightness, 1, 100);
+
+            await SetSegmentBrightnessAsync(segments, newBrightness);
+
+            // Don't delay after the last step
+            if (i < steps)
             {
-                segment = segments,
-                rgb = rgb
+                await Task.Delay(delayMs, cancellationToken);
             }
-        };
-        return SendCommandAsync(capability);
+        }
+
+        // Ensure we hit the exact target
+        await SetSegmentBrightnessAsync(segments, targetBrightness);
     }
 
-    public Task SetSegmentBrightnessAsync(int[] segments, int brightness)
+    public async Task SetBrightnessSmoothAsync(
+        int targetBrightness,
+        TimeSpan duration,
+        CancellationToken cancellationToken = default)
+    {
+        const int steps = 20;
+        const int minDelayMs = 50;
+
+        int delayMs = Math.Max(minDelayMs, (int)(duration.TotalMilliseconds / steps));
+
+        int currentBrightness = await GetCurrentBrightnessAsync();
+        int brightnessStep = (targetBrightness - currentBrightness) / steps;
+
+        for (int i = 1; i <= steps; i++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            int newBrightness = currentBrightness + (brightnessStep * i);
+            newBrightness = Math.Clamp(newBrightness, 10, 100);
+
+            await SetBrightnessAsync(newBrightness);
+
+            if (i < steps)
+            {
+                await Task.Delay(delayMs, cancellationToken);
+            }
+        }
+
+        await SetBrightnessAsync(targetBrightness);
+    }
+
+    // You'll need to track current brightness since Govee API 
+    // doesn't provide easy state queries
+    private int _currentBrightness = 50;
+    private readonly Dictionary<int, int> _segmentBrightness = [];
+
+    private Task<int> GetCurrentBrightnessAsync()
+    {
+        return Task.FromResult(_currentBrightness);
+    }
+
+    private Task<int> GetCurrentBrightnessAsync(int[] segments)
+    {
+        // Assume all segments in the array have the same brightness
+        // Return the brightness of the first segment
+        if (segments.Length > 0 && _segmentBrightness.TryGetValue(segments[0], out var brightness))
+        {
+            return Task.FromResult(brightness);
+        }
+        return Task.FromResult(10); // Default
+    }
+
+    // Update your existing methods to track state
+    public async Task SetBrightnessAsync(int brightness /* 1-100 */)
+    {
+        var capability = new
+        {
+            type = "devices.capabilities.range",
+            instance = "brightness",
+            value = brightness
+        };
+        await SendCommandAsync(capability);
+        _currentBrightness = brightness;
+    }
+
+    public async Task SetSegmentBrightnessAsync(int[] segments, int brightness)
     {
         var capability = new
         {
@@ -119,28 +188,14 @@ public class GoveeClient(HttpClient httpClient)
                 brightness = brightness
             }
         };
-        return SendCommandAsync(capability);
-    }
+        await SendCommandAsync(capability);
 
-    /*
-    public Task SetSegmentAsync(int[] segments, int r, int g, int b, int brightness)
-    {
-        int rgb = RgbToInt(r, g, b);
-        var capability = new
+        // Track brightness for each segment
+        foreach (var segment in segments)
         {
-            type = "devices.capabilities.segment_color_setting",
-            instance = "segmentedBrightness", // kolla upp i dokumentationen
-            value = new
-            {
-                segment = segments,
-                brightness = brightness,
-                rgb = rgb
-            }
-        };
-        return SendCommandAsync(capability);
+            _segmentBrightness[segment] = brightness;
+        }
     }
-    */
-
     private static int RgbToInt(int r, int g, int b)
     {
         return (r << 16) | (g << 8) | b;
