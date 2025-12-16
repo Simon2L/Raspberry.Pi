@@ -8,6 +8,14 @@
 
 <MudText Typo="Typo.h3" GutterBottom="true">Dashboard</MudText>
 
+<MudAlert Severity="Severity.Info">
+    Value: @State.LastEventSensor1?.Value @State.LastEventSensor1?.Timestamp.ToString("mm:ss")
+</MudAlert>
+<br />
+<MudAlert Severity="Severity.Info">
+     Value: @State.LastEventSensor2?.Value @State.LastEventSensor2?.Timestamp.ToString("mm:ss")
+</MudAlert>
+
 <MudForm @ref="form">
     <MudGrid>
         <MudItem xs="12" sm="6">
@@ -71,8 +79,8 @@
     private void LoadSettings()
     {
         var settings = SettingsService.GetSettings();
-        SmoothDuration = (int)settings.SmoothDuration.TotalSeconds;
-        HoldDuration = (int)settings.HoldDuration.TotalSeconds;
+        SmoothDuration = (int)settings.SmoothDuration.Milliseconds;
+        HoldDuration = (int)settings.HoldDuration.Milliseconds;
         Steps = settings.Steps;
     }
 
@@ -95,8 +103,8 @@
         {
             SettingsService.UpdateSettings(settings =>
             {
-                settings.SmoothDuration = TimeSpan.FromSeconds(SmoothDuration);
-                settings.HoldDuration = TimeSpan.FromSeconds(HoldDuration);
+                settings.SmoothDuration = TimeSpan.FromMilliseconds(SmoothDuration);
+                settings.HoldDuration = TimeSpan.FromMilliseconds(HoldDuration);
                 settings.Steps = Steps;
             });
 
