@@ -42,7 +42,8 @@ public class ProximitySensorReaderBackgroundService : BackgroundService
         {
             var proximity1 = _sensor1.GetProximity();
             var proximity2 = _sensor2.GetProximity();
-            Console.WriteLine($"proximity1: {proximity1}, proximity2: {proximity2}");
+            // Console.WriteLine($"proximity1: {proximity1}, proximity2: {proximity2}");
+            
             if (proximity1 > ProximityEventThreshold)
             {
                 ProximityThresholdReached?.Invoke(

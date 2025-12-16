@@ -54,4 +54,7 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+app.Services.GetRequiredService<ProximityEventHandler>();
+
+
 app.Run();
