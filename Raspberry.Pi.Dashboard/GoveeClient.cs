@@ -251,7 +251,7 @@ public class GoveeClient(HttpClient httpClient)
         var capability = new
         {
             type = "devices.capabilities.segment_color_setting",
-            instance = "segmentedColor",
+            instance = "segmentedColorRgb",
             value = new
             {
                 segment = segments,
