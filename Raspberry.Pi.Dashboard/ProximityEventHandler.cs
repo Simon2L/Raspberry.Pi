@@ -80,11 +80,13 @@ public class ProximityEventHandler
 
             // await _goveeClient.SetSegmentColorAsync(segmentsFirst, _red);
             // Smoothly decrease brightness back to 10 (can be cancelled)
-            await _goveeClient.SetSegmentBrightnessSmoothAsync(
+            /*await _goveeClient.SetSegmentBrightnessSmoothAsync(
                 segments: [0, 1, 2, 3, 4, 5, 6],
                 targetBrightness: 1,
                 duration: _duration,
-                _sensor1DecreaseCts.Token);
+                _sensor1DecreaseCts.Token);*/
+
+            await _goveeClient.SetSegmentBrightnessAsync(segmentsFirst, 1);
 
         }
         catch (OperationCanceledException)
@@ -124,11 +126,12 @@ public class ProximityEventHandler
             // await _goveeClient.SetSegmentColorAsync(segmentsSecod, red);
 
             // Smoothly decrease brightness back to 10 (can be cancelled)
-            await _goveeClient.SetSegmentBrightnessSmoothAsync(
+            /*await _goveeClient.SetSegmentBrightnessSmoothAsync(
                 segments: segmentsSecond,
                 targetBrightness: 1,
                 duration: _duration,
-                _sensor2DecreaseCts.Token);
+                _sensor2DecreaseCts.Token);*/
+            await _goveeClient.SetSegmentBrightnessAsync(segmentsSecond, 1);
         }
         catch (OperationCanceledException)
         {
