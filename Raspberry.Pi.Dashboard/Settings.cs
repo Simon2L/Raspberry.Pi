@@ -25,33 +25,35 @@ public interface ISettingsService
 public class SettingsService : ISettingsService
 {
     private readonly ReaderWriterLockSlim _lock = new();
-    private Settings _settings = new();
+    private readonly Settings _settings = new();
 
     public event EventHandler? SettingsChanged;
 
     public Settings GetSettings()
     {
-        _lock.EnterReadLock();
+        return _settings;
+        /*
         try
         {
-            return new Settings
-            {
-                SmoothDuration = _settings.SmoothDuration,
-                HoldDuration = _settings.HoldDuration,
-                Steps = _settings.Steps
-            };
+            _lock.EnterReadLock();
+            var settingsCopy = _settings;
+            return settingsCopy;
         }
         finally
         {
             _lock.ExitReadLock();
         }
+        */
     }
 
     public void UpdateSettings(Action<Settings> updateAction)
     {
-        _lock.EnterWriteLock();
+        updateAction(_settings);
+        SettingsChanged?.Invoke(this, EventArgs.Empty);
+        /*
         try
         {
+            _lock.EnterWriteLock();
             updateAction(_settings);
             SettingsChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -59,5 +61,6 @@ public class SettingsService : ISettingsService
         {
             _lock.ExitWriteLock();
         }
+        */
     }
 }
