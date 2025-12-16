@@ -59,7 +59,7 @@ using (var scope = app.Services.CreateScope())
             await goveeClient.SetBrightnessAsync(5);
         }
     }
-    catch (Exception ex) {
+    catch (Exception ex)
     {
         Console.WriteLine("error while setting the brightness to 5 " + ex.Message);
     }
