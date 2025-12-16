@@ -75,7 +75,7 @@ public class ProximityEventHandler
             // Smoothly decrease brightness back to 10 (can be cancelled)
             await _goveeClient.SetSegmentBrightnessSmoothAsync(
                 segments: [0, 1, 2, 3, 4, 5, 6],
-                targetBrightness: 0,
+                targetBrightness: 1,
                 duration: _duration,
                 _sensor1DecreaseCts.Token);
         }
@@ -114,7 +114,7 @@ public class ProximityEventHandler
             // Smoothly decrease brightness back to 10 (can be cancelled)
             await _goveeClient.SetSegmentBrightnessSmoothAsync(
                 segments: [8, 9, 10, 11, 12, 13, 14],
-                targetBrightness: 0,
+                targetBrightness: 1,
                 duration: _duration,
                 _sensor2DecreaseCts.Token);
         }

@@ -55,13 +55,13 @@ using (var scope = app.Services.CreateScope())
     {
         if (goveeClient != null)
         {
-            Console.WriteLine("Setting whole strip to 5");
-            await goveeClient.SetBrightnessAsync(0);
+            Console.WriteLine("Setting whole strip to 1");
+            await goveeClient.SetBrightnessAsync(1);
         }
     }
     catch (Exception ex)
     {
-        Console.WriteLine("error while setting the brightness to 5 " + ex.Message);
+        Console.WriteLine("error while setting the brightness to 1 " + ex.Message);
     }
 }
 
