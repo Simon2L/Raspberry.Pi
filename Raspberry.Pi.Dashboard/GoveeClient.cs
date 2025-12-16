@@ -242,6 +242,12 @@ public class GoveeClient(HttpClient httpClient)
 
     public async Task SetSegmentColorAsync(int[] segments, RGB rgb)
     {
+        var currentRgb = GetCurrentColor(segments);
+        if (currentRgb.EqualsScuffed(rgb))
+        {
+            Console.WriteLine("Skipped because same RGB");
+            return;
+        }
         var capability = new
         {
             type = "devices.capabilities.segment_color_setting",
