@@ -1,78 +1,122 @@
 ﻿@page "/"
 @inject ProximityUiState State
+@inject ISettingsService SettingsService
+@inject ISnackbar Snackbar
+@implements IDisposable
 
 <PageTitle>Dashboard</PageTitle>
 
-<MudText Typo="Typo.h3">Dashboard</MudText>
+<MudText Typo="Typo.h3" GutterBottom="true">Dashboard</MudText>
 
-<MudGrid>
-    <MudItem xs="6">
-        <MudCard Class="d-flex align-center justify-center mud-width-full py-8">
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h6">Sensor 1</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-                @if (State.LastEventSensor1 != null)
-                {
-                    <MudText>Proximity: @State.LastEventSensor1.Value</MudText>
-                    <MudText>Timestamp: @State.LastEventSensor1.Timestamp.ToString("HH:mm:ff")</MudText>
-                }
-                else
-                {
-                    <MudText>Nothing yet</MudText>
-                }
-            </MudCardContent>
-        </MudCard>
-    </MudItem>
-    <MudItem xs="6">
-        <MudCard Class="d-flex align-center justify-center mud-width-full py-8">
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h6">Sensor 2</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-                @if (State.LastEventSensor2 != null)
-                {
-                    <MudText>Proximity: @State.LastEventSensor2.Value</MudText>
-                    <MudText>Timestamp: @State.LastEventSensor2.Timestamp.ToString("HH:mm:ff")</MudText>
-                }
-                else
-                {
-                    <MudText>Nothing yet</MudText>
-                }
-            </MudCardContent>
-        </MudCard>
-    </MudItem>
-    <MudItem xs="12">
-        <MudCard Class="d-flex align-center justify-center mud-width-full py-8">
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h6">Settings</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudNumericField @bind-Value="SmoothDuration" Label="Smooth Duration in s" Variant="Variant.Text" Min="0" Max="60" />
-                <MudNumericField @bind-Value="HoldDuration" Label="Hold Duration in s" Variant="Variant.Text" Min="5" Max="120" />
-            </MudCardContent>
-        </MudCard>
-    </MudItem>
-</MudGrid>
-
+<MudForm @ref="form">
+    <MudGrid>
+        <MudItem xs="12" sm="6">
+            <MudNumericField @bind-Value="SmoothDuration"
+                             Label="Smooth in ms"
+                             Variant="Variant.Outlined"
+                             Min="100"
+                             Max="10_000"
+                             Adornment="Adornment.End"
+                             AdornmentText="sec" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudNumericField @bind-Value="HoldDuration"
+                             Label="Hold in ms"
+                             Variant="Variant.Outlined"
+                             Min="1_000"
+                             Adornment="Adornment.End"
+                             AdornmentText="sec" />
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudNumericField @bind-Value="Steps"
+                             Label="Steps"
+                             Variant="Variant.Outlined"
+                             Min="1"
+                             Max="20" />
+        </MudItem>
+        <MudItem xs="12">
+            <MudPaper Class="pa-4 mt-4">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           DisableElevation="true"
+                           OnClick="SaveSettings"
+                           StartIcon="@Icons.Material.Filled.Save">
+                    Save Settings
+                </MudButton>
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Default"
+                           Class="ml-2"
+                           OnClick="ResetSettings"
+                           StartIcon="@Icons.Material.Filled.Refresh">
+                    Reset
+                </MudButton>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudForm>
 
 @code {
-    public int SmoothDuration { get; set; }
-    public int HoldDuration { get; set; }
+    MudForm form = default!;
+    private int SmoothDuration { get; set; }
+    private int HoldDuration { get; set; }
+    private int Steps { get; set; }
 
     protected override void OnInitialized()
     {
-        State.OnChange += () => InvokeAsync(StateHasChanged);
+        LoadSettings();
+        State.OnChange += OnStateChanged;
+        SettingsService.SettingsChanged += OnSettingsChanged;
+    }
+
+    private void LoadSettings()
+    {
+        var settings = SettingsService.GetSettings();
+        SmoothDuration = (int)settings.SmoothDuration.TotalSeconds;
+        HoldDuration = (int)settings.HoldDuration.TotalSeconds;
+        Steps = settings.Steps;
+    }
+
+    private async void OnStateChanged()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void OnSettingsChanged(object? sender, EventArgs e)
+    {
+        LoadSettings();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SaveSettings()
+    {
+        await form.Validate();
+
+        if (form.IsValid)
+        {
+            SettingsService.UpdateSettings(settings =>
+            {
+                settings.SmoothDuration = TimeSpan.FromSeconds(SmoothDuration);
+                settings.HoldDuration = TimeSpan.FromSeconds(HoldDuration);
+                settings.Steps = Steps;
+            });
+
+            Snackbar.Add("Settings saved successfully!", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add("Please fix validation errors", Severity.Error);
+        }
+    }
+
+    private void ResetSettings()
+    {
+        LoadSettings();
+        Snackbar.Add("Settings reset to current values", Severity.Info);
     }
 
     public void Dispose()
     {
-        State.OnChange -= () => InvokeAsync(StateHasChanged);
+        State.OnChange -= OnStateChanged;
+        SettingsService.SettingsChanged -= OnSettingsChanged;
     }
 }

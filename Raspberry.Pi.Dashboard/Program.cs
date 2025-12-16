@@ -22,7 +22,7 @@ builder.Services.AddSingleton<ProximitySensorReaderBackgroundService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<ProximitySensorReaderBackgroundService>());
 builder.Services.AddSingleton<ProximityEventHandler>();
 builder.Services.AddSingleton<ProximityUiState>();
-
+builder.Services.AddSingleton<ISettingsService, SettingsService>();
 
 //sites/9296/departures
 

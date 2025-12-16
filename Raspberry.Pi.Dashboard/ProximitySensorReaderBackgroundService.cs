@@ -15,11 +15,13 @@ public class ProximitySensorReaderBackgroundService : BackgroundService
     private readonly Vcnl4010 _sensor2;
     private const int ProximityEventThreshold = 3000;
     private readonly bool SensorsFailedToInitialize = false;
+    private readonly ISettingsService _settingsService;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
-    public ProximitySensorReaderBackgroundService()
+    public ProximitySensorReaderBackgroundService(ISettingsService settingsService)
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     {
+        _settingsService = settingsService;
         try
         {
             Console.WriteLine("Connecting to the sensors.");
@@ -59,8 +61,8 @@ public class ProximitySensorReaderBackgroundService : BackgroundService
                     this,
                     new ProximityEvent(Sensor.Sensor2, proximity2, DateTime.Now));
             }
-
-            await Task.Delay(1000, stoppingToken);
+            var settings = _settingsService.GetSettings();
+            await Task.Delay(settings.SensorDelay.Milliseconds, stoppingToken);
         }
     }
 

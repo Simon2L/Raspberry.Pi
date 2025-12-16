@@ -4,6 +4,7 @@ namespace Raspberry.Pi.Dashboard;
 public class ProximityEventHandler
 {
     private readonly GoveeClient _goveeClient;
+    private readonly ISettingsService _settingsService;
     private readonly ProximityUiState _state;
     private readonly SemaphoreSlim _sensor1Semaphore = new(1, 1);
     private readonly SemaphoreSlim _sensor2Semaphore = new(1, 1);
@@ -11,19 +12,17 @@ public class ProximityEventHandler
     private CancellationTokenSource? _sensor2DecreaseCts;
     private readonly TimeSpan _duration = TimeSpan.FromSeconds(2);
     private readonly TimeSpan _holdTime = TimeSpan.FromSeconds(5);
-    private readonly RGB _red = new RGB(255, 0, 0);
-    private readonly RGB _white = new(255, 255, 255);
-    private int[] segmentsFirst = [0, 1, 2, 3, 4, 5, 6];
-    private int[] segmentsSecond = [8, 9, 10, 11, 12, 13, 14];
 
     public ProximityEventHandler(
         ProximitySensorReaderBackgroundService reader,
         GoveeClient goveeClient,
-        ProximityUiState state)
+        ProximityUiState state,
+        ISettingsService settingsService)
     {
         reader.ProximityThresholdReached += OnThresholdReached;
         _goveeClient = goveeClient;
         _state = state;
+        _settingsService = settingsService;
     }
 
     private void OnThresholdReached(object? sender, ProximityEvent e)
@@ -66,33 +65,24 @@ public class ProximityEventHandler
 
         try
         {
-            // Smoothly increase brightness to 100 (cannot be cancelled)
+            var settings = _settingsService.GetSettings();
+
             await _goveeClient.SetSegmentBrightnessSmoothAsync(
-                 segments: segmentsFirst,
-                 targetBrightness: 100,
+                 segments: settings.Section1,
+                 targetBrightness: settings.MaxBrightness,
                  duration: _duration,
                  CancellationToken.None); // Cannot be cancelled
 
-            // await _goveeClient.SetSegmentColorAsync(segmentsFirst, _white);
-
-            // Hold at 100% for the timer duration (can be cancelled)
             await Task.Delay(_holdTime, _sensor1DecreaseCts.Token);
 
-            // await _goveeClient.SetSegmentColorAsync(segmentsFirst, _red);
-            // Smoothly decrease brightness back to 10 (can be cancelled)
-            /*await _goveeClient.SetSegmentBrightnessSmoothAsync(
-                segments: [0, 1, 2, 3, 4, 5, 6],
-                targetBrightness: 1,
-                duration: _duration,
-                _sensor1DecreaseCts.Token);*/
-
-            await _goveeClient.SetSegmentBrightnessAsync(segmentsFirst, 1);
+            await _goveeClient.SetSegmentBrightnessAsync(settings.Section2, settings.MinBrightness);
 
         }
         catch (OperationCanceledException)
         {
             // Expected when a new event interrupts the timer or decrease phase
             // The new event will start the increase phase
+            Console.WriteLine("Sensor 1 timer reset");
         }
         finally
         {
@@ -102,40 +92,28 @@ public class ProximityEventHandler
 
     private async Task HandleSensor2Async(ProximityEvent e)
     {
-        // Cancel any ongoing decrease (timer or decrease phase)
         _sensor2DecreaseCts?.Cancel();
         _sensor2DecreaseCts = new CancellationTokenSource();
 
-        // Wait for any current operation to finish
         await _sensor2Semaphore.WaitAsync();
+
+        var settings = _settingsService.GetSettings();
 
         try
         {
-            // Smoothly increase brightness to 100 (cannot be cancelled)
             await _goveeClient.SetSegmentBrightnessSmoothAsync(
-                segments: segmentsSecond,
-                targetBrightness: 100,
+                segments: settings.Section2,
+                targetBrightness: settings.MaxBrightness,
                 duration: _duration,
                 CancellationToken.None); // Cannot be cancelled
 
-            // await _goveeClient.SetSegmentColorAsync(segmentsSecod, white);
-
-            // Hold at 100% for the timer duration (can be cancelled)
             await Task.Delay(_holdTime, _sensor2DecreaseCts.Token);
 
-            // await _goveeClient.SetSegmentColorAsync(segmentsSecod, red);
-
-            // Smoothly decrease brightness back to 10 (can be cancelled)
-            /*await _goveeClient.SetSegmentBrightnessSmoothAsync(
-                segments: segmentsSecond,
-                targetBrightness: 1,
-                duration: _duration,
-                _sensor2DecreaseCts.Token);*/
-            await _goveeClient.SetSegmentBrightnessAsync(segmentsSecond, 1);
+            await _goveeClient.SetSegmentBrightnessAsync(settings.Section2, settings.MinBrightness);
         }
         catch (OperationCanceledException)
         {
-            // Expected when a new event interrupts the timer or decrease phase
+            Console.WriteLine("Sensor 2 timer reset");
         }
         finally
         {
@@ -152,7 +130,6 @@ public class ProximityUiState
     public ProximityEvent? LastEventSensor2 { get; private set; }
 
     public event Action? OnChange;
-
 
     public void Update(ProximityEvent proximityEvent)
     {

@@ -2,6 +2,61 @@
 
 public class Settings
 {
-    public TimeSpan SmoothDuration { get; set; }
-    public TimeSpan HoldDuration { get; set; }
+    public List<int> Section1 { get; set; } = [1, 2, 3, 4, 5, 6];
+    public List<int> Section2 { get; set; } = [8, 9, 10, 11, 12, 13, 14];
+
+    public TimeSpan SmoothDuration { get; set; } = TimeSpan.FromSeconds(5);
+    public TimeSpan HoldDuration { get; set; } = TimeSpan.FromSeconds(2);
+    public TimeSpan SensorDelay { get; set; } = TimeSpan.FromSeconds(1);
+
+    public int Steps { get; set; } = 1;
+    public int MaxBrightness { get; set; } = 100;
+    public int MinBrightness { get; set; } = 1;
+}
+
+public interface ISettingsService
+{
+    Settings GetSettings();
+    void UpdateSettings(Action<Settings> updateAction);
+    event EventHandler? SettingsChanged;
+}
+
+public class SettingsService : ISettingsService
+{
+    private readonly ReaderWriterLockSlim _lock = new();
+    private Settings _settings = new();
+
+    public event EventHandler? SettingsChanged;
+
+    public Settings GetSettings()
+    {
+        _lock.EnterReadLock();
+        try
+        {
+            return new Settings
+            {
+                SmoothDuration = _settings.SmoothDuration,
+                HoldDuration = _settings.HoldDuration,
+                Steps = _settings.Steps
+            };
+        }
+        finally
+        {
+            _lock.ExitReadLock();
+        }
+    }
+
+    public void UpdateSettings(Action<Settings> updateAction)
+    {
+        _lock.EnterWriteLock();
+        try
+        {
+            updateAction(_settings);
+            SettingsChanged?.Invoke(this, EventArgs.Empty);
+        }
+        finally
+        {
+            _lock.ExitWriteLock();
+        }
+    }
 }
