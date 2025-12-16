@@ -73,7 +73,7 @@ public class ProximityEventHandler
 
             await Task.Delay(settings.HoldDuration, _sensor1DecreaseCts.Token);
 
-            await _goveeClient.SetSegmentBrightnessAsync(settings.Section2, settings.MinBrightness);
+            await _goveeClient.SetSegmentBrightnessAsync(settings.Section1, settings.MinBrightness);
 
         }
         catch (OperationCanceledException)

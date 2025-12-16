@@ -63,6 +63,7 @@ public class GoveeClient(HttpClient httpClient, ISettingsService settingsService
         };
         var json = JsonSerializer.Serialize(payload);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
+        Console.WriteLine($"content: {content}");
         Console.WriteLine($"HTTP sending request {content}");
         var resp = await _httpClient.PostAsync("device/control", content);
         resp.EnsureSuccessStatusCode();
