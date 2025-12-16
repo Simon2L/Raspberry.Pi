@@ -56,7 +56,8 @@ public class GoveeClient(HttpClient httpClient)
         resp.EnsureSuccessStatusCode();
         var respContent = await resp.Content.ReadAsStringAsync();
         // Console.WriteLine($"Response: {respContent}");
-        httpCounter++;
+        // httpCounter++;
+        Console.WriteLine();
     }
 
     public async Task<GoveeDevicesResponse> GetDevicesAsync()
