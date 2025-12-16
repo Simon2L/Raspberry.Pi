@@ -8,6 +8,27 @@ public class GoveeClient(HttpClient httpClient)
     private readonly HttpClient _httpClient = httpClient;
     private const string sku = "H618A";
     private const string deviceId = "25:F9:D6:09:86:46:08:31";
+    private int httpCounter = 0;
+
+    // You'll need to track current brightness since Govee API 
+    // doesn't provide easy state queries
+    private int _currentBrightness = 50;
+    private readonly Dictionary<int, int> _segmentBrightness = [];
+    private Task<int> GetCurrentBrightnessAsync()
+    {
+        return Task.FromResult(_currentBrightness);
+    }
+
+    private Task<int> GetCurrentBrightnessAsync(int[] segments)
+    {
+        // Assume all segments in the array have the same brightness
+        // Return the brightness of the first segment
+        if (segments.Length > 0 && _segmentBrightness.TryGetValue(segments[0], out var brightness))
+        {
+            return Task.FromResult(brightness);
+        }
+        return Task.FromResult(10); // Default
+    }
 
     public async Task SendCommandAsync(object capability)
     {
@@ -26,7 +47,9 @@ public class GoveeClient(HttpClient httpClient)
         var resp = await _httpClient.PostAsync("device/control", content);
         resp.EnsureSuccessStatusCode();
         var respContent = await resp.Content.ReadAsStringAsync();
-        Console.WriteLine($"Response: {respContent}");
+        // Console.WriteLine($"Response: {respContent}");
+        httpCounter++;
+        Console.WriteLine("HTTP request sent " + httpCounter);
     }
 
     public async Task<GoveeDevicesResponse> GetDevicesAsync()
@@ -78,7 +101,7 @@ public class GoveeClient(HttpClient httpClient)
             TimeSpan duration,
             CancellationToken cancellationToken = default)
     {
-        const int steps = 10; // Number of incremental changes
+        const int steps = 5; // Number of incremental changes
         const int minDelayMs = 50; // Minimum delay between API calls
 
         // Calculate delay between steps
@@ -142,26 +165,6 @@ public class GoveeClient(HttpClient httpClient)
         await SetBrightnessAsync(targetBrightness);
     }
 
-    // You'll need to track current brightness since Govee API 
-    // doesn't provide easy state queries
-    private int _currentBrightness = 50;
-    private readonly Dictionary<int, int> _segmentBrightness = [];
-
-    private Task<int> GetCurrentBrightnessAsync()
-    {
-        return Task.FromResult(_currentBrightness);
-    }
-
-    private Task<int> GetCurrentBrightnessAsync(int[] segments)
-    {
-        // Assume all segments in the array have the same brightness
-        // Return the brightness of the first segment
-        if (segments.Length > 0 && _segmentBrightness.TryGetValue(segments[0], out var brightness))
-        {
-            return Task.FromResult(brightness);
-        }
-        return Task.FromResult(10); // Default
-    }
 
     // Update your existing methods to track state
     public async Task SetBrightnessAsync(int brightness /* 1-100 */)
@@ -178,6 +181,12 @@ public class GoveeClient(HttpClient httpClient)
 
     public async Task SetSegmentBrightnessAsync(int[] segments, int brightness)
     {
+        var currentBrightness = await GetCurrentBrightnessAsync();
+        if (currentBrightness == brightness)
+        {
+            Console.WriteLine("skipped because same brightness");
+        }
+
         var capability = new
         {
             type = "devices.capabilities.segment_color_setting",

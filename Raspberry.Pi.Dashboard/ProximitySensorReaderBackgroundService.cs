@@ -46,6 +46,7 @@ public class ProximitySensorReaderBackgroundService : BackgroundService
             
             if (proximity1 > ProximityEventThreshold)
             {
+                Console.WriteLine("Sensor1 Event");
                 ProximityThresholdReached?.Invoke(
                     this,
                     new ProximityEvent(Sensor.Sensor1, proximity1, DateTime.Now));
@@ -53,6 +54,7 @@ public class ProximitySensorReaderBackgroundService : BackgroundService
 
             if (proximity2 > ProximityEventThreshold)
             {
+                Console.WriteLine("Sensor2 Event");
                 ProximityThresholdReached?.Invoke(
                     this,
                     new ProximityEvent(Sensor.Sensor2, proximity2, DateTime.Now));
