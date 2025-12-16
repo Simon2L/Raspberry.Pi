@@ -13,7 +13,6 @@ public class ProximitySensorReaderBackgroundService : BackgroundService
 {
     private readonly Vcnl4010 _sensor1;
     private readonly Vcnl4010 _sensor2;
-    private const int ProximityEventThreshold = 3000;
     private readonly bool SensorsFailedToInitialize = false;
     private readonly ISettingsService _settingsService;
 
@@ -42,11 +41,13 @@ public class ProximitySensorReaderBackgroundService : BackgroundService
         if (SensorsFailedToInitialize) await StopAsync(stoppingToken);
         while (!stoppingToken.IsCancellationRequested)
         {
+            var settings = _settingsService.GetSettings();
+
             var proximity1 = _sensor1.GetProximity();
             var proximity2 = _sensor2.GetProximity();
             // Console.WriteLine($"proximity1: {proximity1}, proximity2: {proximity2}");
             
-            if (proximity1 > ProximityEventThreshold)
+            if (proximity1 > settings.ProximityEventTreshold)
             {
                 Console.WriteLine("Sensor1 Event");
                 ProximityThresholdReached?.Invoke(
@@ -54,15 +55,14 @@ public class ProximitySensorReaderBackgroundService : BackgroundService
                     new ProximityEvent(Sensor.Sensor1, proximity1, DateTime.Now));
             }
 
-            if (proximity2 > ProximityEventThreshold)
+            if (proximity2 > settings.ProximityEventTreshold)
             {
                 Console.WriteLine("Sensor2 Event");
                 ProximityThresholdReached?.Invoke(
                     this,
                     new ProximityEvent(Sensor.Sensor2, proximity2, DateTime.Now));
             }
-            var settings = _settingsService.GetSettings();
-            await Task.Delay(settings.SensorDelay.Milliseconds, stoppingToken);
+            await Task.Delay(settings.SensorDelay, stoppingToken);
         }
     }
 

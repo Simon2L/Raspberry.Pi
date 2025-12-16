@@ -5,13 +5,14 @@ public class Settings
     public List<int> Section1 { get; set; } = [1, 2, 3, 4, 5, 6];
     public List<int> Section2 { get; set; } = [8, 9, 10, 11, 12, 13, 14];
 
-    public TimeSpan SmoothDuration { get; set; } = TimeSpan.FromSeconds(5);
-    public TimeSpan HoldDuration { get; set; } = TimeSpan.FromSeconds(2);
-    public TimeSpan SensorDelay { get; set; } = TimeSpan.FromSeconds(1);
+    public TimeSpan SmoothDuration { get; set; } = TimeSpan.FromMilliseconds(5_000);
+    public TimeSpan HoldDuration { get; set; } = TimeSpan.FromMilliseconds(5_000);
+    public TimeSpan SensorDelay { get; set; } = TimeSpan.FromMilliseconds(1_000);
 
     public int Steps { get; set; } = 1;
     public int MaxBrightness { get; set; } = 100;
     public int MinBrightness { get; set; } = 1;
+    public int ProximityEventTreshold { get; set; } = 3_000;
 }
 
 public interface ISettingsService

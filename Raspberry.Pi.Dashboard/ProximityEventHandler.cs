@@ -10,8 +10,6 @@ public class ProximityEventHandler
     private readonly SemaphoreSlim _sensor2Semaphore = new(1, 1);
     private CancellationTokenSource? _sensor1DecreaseCts;
     private CancellationTokenSource? _sensor2DecreaseCts;
-    private readonly TimeSpan _duration = TimeSpan.FromSeconds(2);
-    private readonly TimeSpan _holdTime = TimeSpan.FromSeconds(5);
 
     public ProximityEventHandler(
         ProximitySensorReaderBackgroundService reader,
@@ -70,10 +68,10 @@ public class ProximityEventHandler
             await _goveeClient.SetSegmentBrightnessSmoothAsync(
                  segments: settings.Section1,
                  targetBrightness: settings.MaxBrightness,
-                 duration: _duration,
+                 duration: settings.SmoothDuration,
                  CancellationToken.None); // Cannot be cancelled
 
-            await Task.Delay(_holdTime, _sensor1DecreaseCts.Token);
+            await Task.Delay(settings.HoldDuration, _sensor1DecreaseCts.Token);
 
             await _goveeClient.SetSegmentBrightnessAsync(settings.Section2, settings.MinBrightness);
 
@@ -104,10 +102,10 @@ public class ProximityEventHandler
             await _goveeClient.SetSegmentBrightnessSmoothAsync(
                 segments: settings.Section2,
                 targetBrightness: settings.MaxBrightness,
-                duration: _duration,
+                duration: settings.SmoothDuration,
                 CancellationToken.None); // Cannot be cancelled
 
-            await Task.Delay(_holdTime, _sensor2DecreaseCts.Token);
+            await Task.Delay(settings.HoldDuration, _sensor2DecreaseCts.Token);
 
             await _goveeClient.SetSegmentBrightnessAsync(settings.Section2, settings.MinBrightness);
         }

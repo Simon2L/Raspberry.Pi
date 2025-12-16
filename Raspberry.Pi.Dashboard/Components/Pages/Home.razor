@@ -9,39 +9,111 @@
 <MudText Typo="Typo.h3" GutterBottom="true">Dashboard</MudText>
 
 <MudAlert Severity="Severity.Info">
-    Value: @State.LastEventSensor1?.Value @State.LastEventSensor1?.Timestamp.ToString("mm:ss")
+    Sensor1: Value: @State.LastEventSensor1?.Value @State.LastEventSensor1?.Timestamp.ToString("mm:ss")
 </MudAlert>
 <br />
 <MudAlert Severity="Severity.Info">
-     Value: @State.LastEventSensor2?.Value @State.LastEventSensor2?.Timestamp.ToString("mm:ss")
+    Sensor2: Value: @State.LastEventSensor2?.Value @State.LastEventSensor2?.Timestamp.ToString("mm:ss")
 </MudAlert>
+<br />
 
 <MudForm @ref="form">
     <MudGrid>
-        <MudItem xs="12" sm="6">
+        <MudItem xs="12">
+            <MudText Typo="Typo.h6" Class="mb-2">Timing Settings</MudText>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
             <MudNumericField @bind-Value="SmoothDuration"
-                             Label="Smooth in ms"
+                             Label="Smooth Duration"
                              Variant="Variant.Outlined"
                              Min="100"
                              Max="10_000"
                              Adornment="Adornment.End"
-                             AdornmentText="sec" />
+                             AdornmentText="ms" />
         </MudItem>
-        <MudItem xs="12" sm="6">
+
+        <MudItem xs="12" sm="6" md="4">
             <MudNumericField @bind-Value="HoldDuration"
-                             Label="Hold in ms"
+                             Label="Hold Duration"
                              Variant="Variant.Outlined"
                              Min="1_000"
                              Adornment="Adornment.End"
-                             AdornmentText="sec" />
+                             AdornmentText="ms" />
         </MudItem>
-        <MudItem xs="12" sm="6">
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudNumericField @bind-Value="SensorDelay"
+                             Label="Sensor Delay"
+                             Variant="Variant.Outlined"
+                             Min="100"
+                             Max="10_000"
+                             Adornment="Adornment.End"
+                             AdornmentText="ms" />
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudText Typo="Typo.h6" Class="mb-2 mt-4">Brightness Settings</MudText>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
             <MudNumericField @bind-Value="Steps"
                              Label="Steps"
                              Variant="Variant.Outlined"
                              Min="1"
                              Max="20" />
         </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudNumericField @bind-Value="MaxBrightness"
+                             Label="Max Brightness"
+                             Variant="Variant.Outlined"
+                             Min="1"
+                             Max="100"
+                             Adornment="Adornment.End"
+                             AdornmentText="%" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudNumericField @bind-Value="MinBrightness"
+                             Label="Min Brightness"
+                             Variant="Variant.Outlined"
+                             Min="0"
+                             Max="100"
+                             Adornment="Adornment.End"
+                             AdornmentText="%" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudNumericField @bind-Value="ProximityEventTreshold"
+                             Label="Proximity Threshold"
+                             Variant="Variant.Outlined"
+                             Min="100"
+                             Max="10_000"
+                             Adornment="Adornment.End"
+                             AdornmentText="ms" />
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudText Typo="Typo.h6" Class="mb-2 mt-4">Section Configuration</MudText>
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="Section1Text"
+                          Label="Section 1 (comma-separated)"
+                          Variant="Variant.Outlined"
+                          Placeholder="1, 2, 3, 4, 5, 6"
+                          HelperText="Enter pin numbers separated by commas" />
+        </MudItem>
+
+        <MudItem xs="12" sm="6">
+            <MudTextField @bind-Value="Section2Text"
+                          Label="Section 2 (comma-separated)"
+                          Variant="Variant.Outlined"
+                          Placeholder="8, 9, 10, 11, 12, 13, 14"
+                          HelperText="Enter pin numbers separated by commas" />
+        </MudItem>
+
         <MudItem xs="12">
             <MudPaper Class="pa-4 mt-4">
                 <MudButton Variant="Variant.Filled"
@@ -67,7 +139,13 @@
     MudForm form = default!;
     private int SmoothDuration { get; set; }
     private int HoldDuration { get; set; }
+    private int SensorDelay { get; set; }
     private int Steps { get; set; }
+    private int MaxBrightness { get; set; }
+    private int MinBrightness { get; set; }
+    private int ProximityEventTreshold { get; set; }
+    private string Section1Text { get; set; } = string.Empty;
+    private string Section2Text { get; set; } = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -79,9 +157,15 @@
     private void LoadSettings()
     {
         var settings = SettingsService.GetSettings();
-        SmoothDuration = (int)settings.SmoothDuration.Milliseconds;
-        HoldDuration = (int)settings.HoldDuration.Milliseconds;
+        SmoothDuration = (int)settings.SmoothDuration.TotalMilliseconds;
+        HoldDuration = (int)settings.HoldDuration.TotalMilliseconds;
+        SensorDelay = (int)settings.SensorDelay.TotalMilliseconds;
         Steps = settings.Steps;
+        MaxBrightness = settings.MaxBrightness;
+        MinBrightness = settings.MinBrightness;
+        ProximityEventTreshold = settings.ProximityEventTreshold;
+        Section1Text = string.Join(", ", settings.Section1);
+        Section2Text = string.Join(", ", settings.Section2);
     }
 
     private async void OnStateChanged()
@@ -101,14 +185,30 @@
 
         if (form.IsValid)
         {
-            SettingsService.UpdateSettings(settings =>
+            try
             {
-                settings.SmoothDuration = TimeSpan.FromMilliseconds(SmoothDuration);
-                settings.HoldDuration = TimeSpan.FromMilliseconds(HoldDuration);
-                settings.Steps = Steps;
-            });
+                var section1 = ParseIntList(Section1Text);
+                var section2 = ParseIntList(Section2Text);
 
-            Snackbar.Add("Settings saved successfully!", Severity.Success);
+                SettingsService.UpdateSettings(settings =>
+                {
+                    settings.SmoothDuration = TimeSpan.FromMilliseconds(SmoothDuration);
+                    settings.HoldDuration = TimeSpan.FromMilliseconds(HoldDuration);
+                    settings.SensorDelay = TimeSpan.FromMilliseconds(SensorDelay);
+                    settings.Steps = Steps;
+                    settings.MaxBrightness = MaxBrightness;
+                    settings.MinBrightness = MinBrightness;
+                    settings.ProximityEventTreshold = ProximityEventTreshold;
+                    settings.Section1 = section1;
+                    settings.Section2 = section2;
+                });
+
+                Snackbar.Add("Settings saved successfully!", Severity.Success);
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error parsing sections: {ex.Message}", Severity.Error);
+            }
         }
         else
         {
@@ -120,6 +220,15 @@
     {
         LoadSettings();
         Snackbar.Add("Settings reset to current values", Severity.Info);
+    }
+
+    private List<int> ParseIntList(string input)
+    {
+        return input.Split(',')
+            .Select(s => s.Trim())
+            .Where(s => !string.IsNullOrEmpty(s))
+            .Select(int.Parse)
+            .ToList();
     }
 
     public void Dispose()
