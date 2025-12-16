@@ -12,7 +12,7 @@ public class GoveeClient(HttpClient httpClient)
 
     // You'll need to track current brightness since Govee API 
     // doesn't provide easy state queries
-    private int _currentBrightness = 0;
+    private int _currentBrightness = -1;
     private readonly Dictionary<int, int> _segmentBrightness = [];
 
     private Task<int> GetCurrentBrightnessAsync()
@@ -128,7 +128,7 @@ public class GoveeClient(HttpClient httpClient)
             Console.WriteLine($"newBrightness: {newBrightness}, currentBrightness: {currentBrightness}");
 
             // Clamp to 1-100 range
-            newBrightness = Math.Clamp(newBrightness, 1, 100);
+            newBrightness = Math.Clamp(newBrightness, 0, 100);
 
             Console.WriteLine($"setting new brightness: {newBrightness} for {string.Join(',', segments)}");
             await SetSegmentBrightnessAsync(segments, newBrightness);
