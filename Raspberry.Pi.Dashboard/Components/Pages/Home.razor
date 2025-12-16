@@ -1,29 +1,71 @@
 ﻿@page "/"
 @inject ProximityUiState State
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Dashboard</PageTitle>
 
-<MudText Typo="Typo.h3">Proximity</MudText>
+<MudText Typo="Typo.h3">Dashboard</MudText>
 
-@if (State.LastEventSensor1 is not null)
-{
-    <MudAlert Severity="Severity.Info" Variant="Variant.Filled">
-        <MudText Typo="Typo.h5">Sensor 1</MudText>
-        <MudText>@State.LastEventSensor1.Value</MudText>
-        <MudText>@State.LastEventSensor1.Timestamp.ToString("HH:mm:ff")</MudText>
-    </MudAlert>
-}
+<MudGrid>
+    <MudItem xs="6">
+        <MudCard Class="d-flex align-center justify-center mud-width-full py-8">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Sensor 1</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (State.LastEventSensor1 != null)
+                {
+                    <MudText>Proximity: @State.LastEventSensor1.Value</MudText>
+                    <MudText>Timestamp: @State.LastEventSensor1.Timestamp.ToString("HH:mm:ff")</MudText>
+                }
+                else
+                {
+                    <MudText>Nothing yet</MudText>
+                }
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="6">
+        <MudCard Class="d-flex align-center justify-center mud-width-full py-8">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Sensor 2</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (State.LastEventSensor2 != null)
+                {
+                    <MudText>Proximity: @State.LastEventSensor2.Value</MudText>
+                    <MudText>Timestamp: @State.LastEventSensor2.Timestamp.ToString("HH:mm:ff")</MudText>
+                }
+                else
+                {
+                    <MudText>Nothing yet</MudText>
+                }
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12">
+        <MudCard Class="d-flex align-center justify-center mud-width-full py-8">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Settings</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudNumericField @bind-Value="SmoothDuration" Label="Smooth Duration in s" Variant="Variant.Text" Min="0" Max="60" />
+                <MudNumericField @bind-Value="HoldDuration" Label="Hold Duration in s" Variant="Variant.Text" Min="5" Max="120" />
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
 
-@if (State.LastEventSensor2 is not null)
-{
-    <MudAlert Severity="Severity.Info" Variant="Variant.Filled">
-        <MudText Typo="Typo.h5">Sensor 2</MudText>
-        <MudText>@State.LastEventSensor2.Value</MudText>
-        <MudText>@State.LastEventSensor2.Timestamp.ToString("HH:mm:ff")</MudText>
-    </MudAlert>
-}
 
 @code {
+    public int SmoothDuration { get; set; }
+    public int HoldDuration { get; set; }
+
     protected override void OnInitialized()
     {
         State.OnChange += () => InvokeAsync(StateHasChanged);
