@@ -22,6 +22,7 @@ public class ProximitySensorReaderBackgroundService : BackgroundService
     {
         try
         {
+            Console.WriteLine("Connecting to the sensors.");
             _sensor1 = new(busId: 1);
             _sensor2 = new(busId: 3);
         }
@@ -37,12 +38,11 @@ public class ProximitySensorReaderBackgroundService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         if (SensorsFailedToInitialize) await StopAsync(stoppingToken);
-
         while (!stoppingToken.IsCancellationRequested)
         {
             var proximity1 = _sensor1.GetProximity();
             var proximity2 = _sensor2.GetProximity();
-
+            Console.WriteLine($"proximity1: {proximity1}, proximity2: {proximity2}");
             if (proximity1 > ProximityEventThreshold)
             {
                 ProximityThresholdReached?.Invoke(

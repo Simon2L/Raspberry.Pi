@@ -24,6 +24,7 @@ public class ProximityEventHandler
 
     private void OnThresholdReached(object? sender, ProximityEvent e)
     {
+        Console.WriteLine("Event happened :D");
         _state.Update(e);
 
         // Fire-and-forget with proper task handling
