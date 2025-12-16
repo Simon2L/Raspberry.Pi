@@ -63,21 +63,25 @@ public class ProximityEventHandler
         try
         {
             // Smoothly increase brightness to 100 (cannot be cancelled)
-            await _goveeClient.SetSegmentBrightnessSmoothAsync(
-                segments: [0, 1, 2, 3, 4, 5, 6],
-                targetBrightness: 100,
-                duration: _duration,
-                CancellationToken.None); // Cannot be cancelled
+            /* await _goveeClient.SetSegmentBrightnessSmoothAsync(
+                 segments: [0, 1, 2, 3, 4, 5, 6],
+                 targetBrightness: 100,
+                 duration: _duration,
+                 CancellationToken.None); // Cannot be cancelled*/
+
+            await _goveeClient.SetColorRgbAsync(r:255, g:255, b:255);
 
             // Hold at 100% for the timer duration (can be cancelled)
             await Task.Delay(_holdTime, _sensor1DecreaseCts.Token);
 
+            await _goveeClient.SetColorRgbAsync(r:255, g:0, b:0);
             // Smoothly decrease brightness back to 10 (can be cancelled)
-            await _goveeClient.SetSegmentBrightnessSmoothAsync(
+            /*await _goveeClient.SetSegmentBrightnessSmoothAsync(
                 segments: [0, 1, 2, 3, 4, 5, 6],
                 targetBrightness: 1,
                 duration: _duration,
-                _sensor1DecreaseCts.Token);
+                _sensor1DecreaseCts.Token);*/
+
         }
         catch (OperationCanceledException)
         {
@@ -102,21 +106,25 @@ public class ProximityEventHandler
         try
         {
             // Smoothly increase brightness to 100 (cannot be cancelled)
-            await _goveeClient.SetSegmentBrightnessSmoothAsync(
+            /*await _goveeClient.SetSegmentBrightnessSmoothAsync(
                 segments: [8, 9, 10, 11, 12, 13, 14],
                 targetBrightness: 100,
                 duration: _duration,
-                CancellationToken.None); // Cannot be cancelled
+                CancellationToken.None);*/ // Cannot be cancelled
+
+            await _goveeClient.SetColorRgbAsync(r: 255, g: 255, b: 255);
 
             // Hold at 100% for the timer duration (can be cancelled)
             await Task.Delay(_holdTime, _sensor2DecreaseCts.Token);
 
+            await _goveeClient.SetColorRgbAsync(r: 255, g: 0, b: 0);
+
             // Smoothly decrease brightness back to 10 (can be cancelled)
-            await _goveeClient.SetSegmentBrightnessSmoothAsync(
+            /*await _goveeClient.SetSegmentBrightnessSmoothAsync(
                 segments: [8, 9, 10, 11, 12, 13, 14],
                 targetBrightness: 1,
                 duration: _duration,
-                _sensor2DecreaseCts.Token);
+                _sensor2DecreaseCts.Token);*/
         }
         catch (OperationCanceledException)
         {
