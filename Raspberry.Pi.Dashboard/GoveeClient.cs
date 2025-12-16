@@ -3,6 +3,21 @@ using System.Text.Json;
 
 namespace Raspberry.Pi.Dashboard;
 
+public record RGB(int R, int G, int B)
+{
+
+    public bool EqualsScuffed(RGB other)
+    {
+        return (R == other.R && G == other.G && B == other.B);
+    }
+
+    public int ToInt()
+    {
+        return (R << 16) | (G << 8) | B;
+    }
+
+};
+
 public class GoveeClient(HttpClient httpClient)
 {
     private readonly HttpClient _httpClient = httpClient;
@@ -14,6 +29,7 @@ public class GoveeClient(HttpClient httpClient)
     // doesn't provide easy state queries
     private int _currentBrightness = 0;
     private readonly Dictionary<int, int> _segmentBrightness = [];
+    private readonly Dictionary<int, RGB> _segmentColor = [];
 
     private Task<int> GetCurrentBrightnessAsync()
     {
@@ -80,14 +96,14 @@ public class GoveeClient(HttpClient httpClient)
         return SendCommandAsync(capability);
     }
 
-    public Task SetColorRgbAsync(int r, int g, int b)
+    public Task SetColorRgbAsync(RGB rgb)
     {
-        int rgb = RgbToInt(r, g, b);
+        // int rgb = RgbToInt(r, g, b);
         var capability = new
         {
             type = "devices.capabilities.color_setting",
             instance = "colorRgb",
-            value = rgb
+            value = rgb.ToInt(),
         };
         return SendCommandAsync(capability);
     }
@@ -174,8 +190,8 @@ public class GoveeClient(HttpClient httpClient)
         }
 
         await SetBrightnessAsync(targetBrightness);
-    }
-    */
+    }*/
+
 
     // Update your existing methods to track state
     public async Task SetBrightnessAsync(int brightness /* 1-100 */)
@@ -223,8 +239,42 @@ public class GoveeClient(HttpClient httpClient)
             _segmentBrightness[segment] = brightness;
         }
     }
+
+    public async Task SetSegmentColorAsync(int[] segments, RGB rgb)
+    {
+        var capability = new
+        {
+            type = "devices.capabilities.segment_color_setting",
+            instance = "segmentedColor",
+            value = new
+            {
+                segment = segments,
+                value = rgb.ToInt()
+            }
+        };
+
+        await SendCommandAsync(capability);
+
+        foreach (var segment in segments)
+        {
+            _segmentColor[segment] = rgb;
+        }
+    }
+
+    public RGB GetCurrentColor(int[] segments)
+    {
+        if (segments.Length > 0 && _segmentColor.TryGetValue(segments[0], out var rgb))
+        {
+            return rgb;
+        }
+        return new RGB(255, 0, 0);
+        //return _currentBrightness; // Default
+    }
+
+
     private static int RgbToInt(int r, int g, int b)
     {
         return (r << 16) | (g << 8) | b;
     }
+
 }

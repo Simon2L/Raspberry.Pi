@@ -11,6 +11,10 @@ public class ProximityEventHandler
     private CancellationTokenSource? _sensor2DecreaseCts;
     private readonly TimeSpan _duration = TimeSpan.FromSeconds(2);
     private readonly TimeSpan _holdTime = TimeSpan.FromSeconds(5);
+    private readonly RGB _red = new RGB(255, 0, 0);
+    private readonly RGB _white = new(255, 255, 255);
+    private int[] segmentsFirst = [0, 1, 2, 3, 4, 5, 6];
+    private int[] segmentsSecod = [8, 9, 10, 11, 12, 13, 14];
 
     public ProximityEventHandler(
         ProximitySensorReaderBackgroundService reader,
@@ -69,12 +73,12 @@ public class ProximityEventHandler
                  duration: _duration,
                  CancellationToken.None); // Cannot be cancelled*/
 
-            await _goveeClient.SetColorRgbAsync(r:255, g:255, b:255);
+            await _goveeClient.SetSegmentColorAsync(segmentsFirst, _white);
 
             // Hold at 100% for the timer duration (can be cancelled)
             await Task.Delay(_holdTime, _sensor1DecreaseCts.Token);
 
-            await _goveeClient.SetColorRgbAsync(r:255, g:0, b:0);
+            await _goveeClient.SetSegmentColorAsync(segmentsFirst, _red);
             // Smoothly decrease brightness back to 10 (can be cancelled)
             /*await _goveeClient.SetSegmentBrightnessSmoothAsync(
                 segments: [0, 1, 2, 3, 4, 5, 6],
@@ -111,13 +115,14 @@ public class ProximityEventHandler
                 targetBrightness: 100,
                 duration: _duration,
                 CancellationToken.None);*/ // Cannot be cancelled
-
-            await _goveeClient.SetColorRgbAsync(r: 255, g: 255, b: 255);
+            var red = new RGB(255, 0, 0);
+            var white = new RGB(255, 255, 255);
+            await _goveeClient.SetSegmentColorAsync(segmentsSecod, white);
 
             // Hold at 100% for the timer duration (can be cancelled)
             await Task.Delay(_holdTime, _sensor2DecreaseCts.Token);
 
-            await _goveeClient.SetColorRgbAsync(r: 255, g: 0, b: 0);
+            await _goveeClient.SetSegmentColorAsync(segmentsSecod, red);
 
             // Smoothly decrease brightness back to 10 (can be cancelled)
             /*await _goveeClient.SetSegmentBrightnessSmoothAsync(
