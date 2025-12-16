@@ -39,6 +39,7 @@ public class GoveeClient(HttpClient httpClient)
 
     public async Task SendCommandAsync(object capability)
     {
+        Console.WriteLine($"HTTP sending request {capability}");
         var payload = new
         {
             requestId = Guid.NewGuid().ToString(),
@@ -56,7 +57,6 @@ public class GoveeClient(HttpClient httpClient)
         var respContent = await resp.Content.ReadAsStringAsync();
         // Console.WriteLine($"Response: {respContent}");
         httpCounter++;
-        Console.WriteLine("HTTP request sent " + httpCounter);
     }
 
     public async Task<GoveeDevicesResponse> GetDevicesAsync()
@@ -124,11 +124,12 @@ public class GoveeClient(HttpClient httpClient)
             cancellationToken.ThrowIfCancellationRequested();
 
             int newBrightness = currentBrightness + (brightnessStep * i);
+            Console.WriteLine($"newBrightness: {newBrightness}, currentBrightness: {currentBrightness}");
 
             // Clamp to 1-100 range
             newBrightness = Math.Clamp(newBrightness, 1, 100);
 
-            Console.WriteLine($"setting new brightness: {newBrightness} for {segments}");
+            Console.WriteLine($"setting new brightness: {newBrightness} for {string.Join(',', segments)}");
             await SetSegmentBrightnessAsync(segments, newBrightness);
 
             // Don't delay after the last step
@@ -139,7 +140,7 @@ public class GoveeClient(HttpClient httpClient)
         }
 
         // Ensure we hit the exact target
-        await SetSegmentBrightnessAsync(segments, targetBrightness);
+        // await SetSegmentBrightnessAsync(segments, targetBrightness);
     }
 
     /*
