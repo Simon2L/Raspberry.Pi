@@ -55,7 +55,6 @@ public class GoveeClient(HttpClient httpClient)
 
     public async Task SendCommandAsync(object capability)
     {
-        Console.WriteLine($"HTTP sending request {capability}");
         var payload = new
         {
             requestId = Guid.NewGuid().ToString(),
@@ -68,6 +67,7 @@ public class GoveeClient(HttpClient httpClient)
         };
         var json = JsonSerializer.Serialize(payload);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
+        Console.WriteLine($"HTTP sending request {content}");
         var resp = await _httpClient.PostAsync("device/control", content);
         resp.EnsureSuccessStatusCode();
         var respContent = await resp.Content.ReadAsStringAsync();
@@ -207,7 +207,7 @@ public class GoveeClient(HttpClient httpClient)
         {
             type = "devices.capabilities.range",
             instance = "brightness",
-            value = brightness
+            brightness = brightness
         };
         await SendCommandAsync(capability);
         SetCurrentBrightness(brightness);
@@ -255,7 +255,7 @@ public class GoveeClient(HttpClient httpClient)
             value = new
             {
                 segment = segments,
-                value = rgb.ToInt()
+                rgb = rgb.ToInt()
             }
         };
 
