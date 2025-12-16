@@ -108,7 +108,7 @@ public class GoveeClient(HttpClient httpClient)
             TimeSpan duration,
             CancellationToken cancellationToken = default)
     {
-        const int steps = 5; // Number of incremental changes
+        const int steps = 1; // Number of incremental changes
         const int minDelayMs = 50; // Minimum delay between API calls
 
         // Calculate delay between steps
@@ -128,6 +128,7 @@ public class GoveeClient(HttpClient httpClient)
             // Clamp to 1-100 range
             newBrightness = Math.Clamp(newBrightness, 1, 100);
 
+            Console.WriteLine($"setting new brightness: {newBrightness} for {segments}");
             await SetSegmentBrightnessAsync(segments, newBrightness);
 
             // Don't delay after the last step
