@@ -125,7 +125,7 @@ public class GoveeClient(HttpClient httpClient)
             TimeSpan duration,
             CancellationToken cancellationToken = default)
     {
-        const int steps = 1; // Number of incremental changes
+        const int steps = 5; // Number of incremental changes
         const int minDelayMs = 50; // Minimum delay between API calls
 
         // Calculate delay between steps
