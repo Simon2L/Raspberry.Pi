@@ -47,6 +47,23 @@ if (!app.Environment.IsDevelopment())
 
 //app.UseHttpsRedirection();
 
+using (var scope = app.Services.CreateScope())
+{
+    var goveeClient = scope.ServiceProvider.GetService<GoveeClient>();
+
+    try
+    {
+        if (goveeClient != null)
+        {
+            Console.WriteLine("Setting whole strip to 5");
+            await goveeClient.SetBrightnessAsync(5);
+        }
+    }
+    catch (Exception ex) {
+    {
+        Console.WriteLine("error while setting the brightness to 5 " + ex.Message);
+    }
+}
 
 app.UseAntiforgery();
 

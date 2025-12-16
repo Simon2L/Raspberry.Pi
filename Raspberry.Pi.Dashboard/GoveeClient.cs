@@ -12,11 +12,18 @@ public class GoveeClient(HttpClient httpClient)
 
     // You'll need to track current brightness since Govee API 
     // doesn't provide easy state queries
-    private int _currentBrightness = 50;
+    private int _currentBrightness = 0;
     private readonly Dictionary<int, int> _segmentBrightness = [];
+
     private Task<int> GetCurrentBrightnessAsync()
     {
         return Task.FromResult(_currentBrightness);
+    }
+
+    private void SetCurrentBrightness(int brightness)
+    {
+        _segmentBrightness.Clear();
+        _currentBrightness = brightness;
     }
 
     private Task<int> GetCurrentBrightnessAsync(int[] segments)
@@ -27,7 +34,7 @@ public class GoveeClient(HttpClient httpClient)
         {
             return Task.FromResult(brightness);
         }
-        return Task.FromResult(10); // Default
+        return Task.FromResult(_currentBrightness); // Default
     }
 
     public async Task SendCommandAsync(object capability)
@@ -134,6 +141,7 @@ public class GoveeClient(HttpClient httpClient)
         await SetSegmentBrightnessAsync(segments, targetBrightness);
     }
 
+    /*
     public async Task SetBrightnessSmoothAsync(
         int targetBrightness,
         TimeSpan duration,
@@ -164,11 +172,18 @@ public class GoveeClient(HttpClient httpClient)
 
         await SetBrightnessAsync(targetBrightness);
     }
-
+    */
 
     // Update your existing methods to track state
     public async Task SetBrightnessAsync(int brightness /* 1-100 */)
     {
+        var currentBrightness = await GetCurrentBrightnessAsync();
+        if (currentBrightness == brightness)
+        {
+            Console.WriteLine("skip sent");
+            return; 
+        }
+
         var capability = new
         {
             type = "devices.capabilities.range",
@@ -176,12 +191,12 @@ public class GoveeClient(HttpClient httpClient)
             value = brightness
         };
         await SendCommandAsync(capability);
-        _currentBrightness = brightness;
+        SetCurrentBrightness(brightness);
     }
 
     public async Task SetSegmentBrightnessAsync(int[] segments, int brightness)
     {
-        var currentBrightness = await GetCurrentBrightnessAsync();
+        var currentBrightness = await GetCurrentBrightnessAsync(segments);
         if (currentBrightness == brightness)
         {
             Console.WriteLine("skipped because same brightness");
