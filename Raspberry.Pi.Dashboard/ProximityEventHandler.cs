@@ -78,12 +78,16 @@ public class ProximityEventHandler
 
         // Only proceed if we need to increase brightness
         if (state.CurrentBrightness == settings.MaxBrightness)
+        {
+            Console.WriteLine("Already max brightness returning..");
             return;
+        }
 
         await state.Semaphore.WaitAsync();
         try
         {
             // Increase brightness smoothly (cannot be cancelled)
+            Console.WriteLine($"Increaseing Brightness Smooth {settings.MaxBrightness}");
             await _goveeClient.SetSegmentBrightnessSmoothAsync(
                 segments: section,
                 targetBrightness: settings.MaxBrightness,
@@ -92,6 +96,7 @@ public class ProximityEventHandler
 
             state.CurrentBrightness = settings.MaxBrightness;
 
+            Console.WriteLine($"Holding for {settings.HoldDuration.TotalSeconds}s");
             // Hold at max brightness
             await Task.Delay(settings.HoldDuration, state.DecreaseCts.Token);
 
@@ -100,9 +105,10 @@ public class ProximityEventHandler
         }
         catch (OperationCanceledException)
         {
+            Console.WriteLine("Timer reset");
             // New event came in during hold, decrease immediately
-            await _goveeClient.SetSegmentBrightnessAsync(section, settings.MinBrightness);
-            state.CurrentBrightness = settings.MinBrightness;
+            // await _goveeClient.SetSegmentBrightnessAsync(section, settings.MinBrightness);
+            // state.CurrentBrightness = settings.MinBrightness;
         }
         finally
         {
@@ -137,6 +143,7 @@ public class ProximityEventHandler
         catch (OperationCanceledException)
         {
             // Timer was cancelled by new event - expected behavior
+            Console.WriteLine("Timer cancelled in DecreaseTimerAsync");
         }
     }
 
