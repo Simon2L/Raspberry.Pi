@@ -6,134 +6,159 @@
 
 <PageTitle>Dashboard</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Dashboard</MudText>
+<MudContainer Class="px-4 pt-2" Style="padding-top: 0;">
+    <MudText Typo="Typo.h3" GutterBottom="true">Dashboard</MudText>
 
-<MudAlert Severity="Severity.Info">
-    Sensor1: Value: @State.LastEventSensor1?.Value @State.LastEventSensor1?.Timestamp.ToString("mm:ss")
-</MudAlert>
-<br />
-<MudAlert Severity="Severity.Info">
-    Sensor2: Value: @State.LastEventSensor2?.Value @State.LastEventSensor2?.Timestamp.ToString("mm:ss")
-</MudAlert>
-<br />
-
-<MudForm @ref="form">
-    <MudGrid>
-        <MudItem xs="12">
-            <MudText Typo="Typo.h6" Class="mb-2">Timing Settings</MudText>
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="4">
-            <MudNumericField @bind-Value="SmoothDuration"
-                             Label="Smooth Duration"
-                             Variant="Variant.Outlined"
-                             Min="100"
-                             Max="10_000"
-                             Adornment="Adornment.End"
-                             AdornmentText="ms" />
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="4">
-            <MudNumericField @bind-Value="HoldDuration"
-                             Label="Hold Duration"
-                             Variant="Variant.Outlined"
-                             Min="1_000"
-                             Adornment="Adornment.End"
-                             AdornmentText="ms" />
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="4">
-            <MudNumericField @bind-Value="SensorDelay"
-                             Label="Sensor Delay"
-                             Variant="Variant.Outlined"
-                             Min="100"
-                             Max="10_000"
-                             Adornment="Adornment.End"
-                             AdornmentText="ms" />
-        </MudItem>
-
-        <MudItem xs="12">
-            <MudText Typo="Typo.h6" Class="mb-2 mt-4">Brightness Settings</MudText>
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="3">
-            <MudNumericField @bind-Value="Steps"
-                             Label="Steps"
-                             Variant="Variant.Outlined"
-                             Min="1"
-                             Max="20" />
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="3">
-            <MudNumericField @bind-Value="MaxBrightness"
-                             Label="Max Brightness"
-                             Variant="Variant.Outlined"
-                             Min="1"
-                             Max="100"
-                             Adornment="Adornment.End"
-                             AdornmentText="%" />
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="3">
-            <MudNumericField @bind-Value="MinBrightness"
-                             Label="Min Brightness"
-                             Variant="Variant.Outlined"
-                             Min="0"
-                             Max="100"
-                             Adornment="Adornment.End"
-                             AdornmentText="%" />
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="3">
-            <MudNumericField @bind-Value="ProximityEventTreshold"
-                             Label="Proximity Threshold"
-                             Variant="Variant.Outlined"
-                             Min="100"
-                             Max="10_000"
-                             Adornment="Adornment.End"
-                             AdornmentText="ms" />
-        </MudItem>
-
-        <MudItem xs="12">
-            <MudText Typo="Typo.h6" Class="mb-2 mt-4">Section Configuration</MudText>
-        </MudItem>
-
+    <MudGrid Class="mb-4">
         <MudItem xs="12" sm="6">
-            <MudTextField @bind-Value="Section1Text"
-                          Label="Section 1 (comma-separated)"
-                          Variant="Variant.Outlined"
-                          Placeholder="1, 2, 3, 4, 5, 6"
-                          HelperText="Enter pin numbers separated by commas" />
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Color="Color.Primary">Sensor 1</MudText>
+                    <MudText Typo="Typo.body1">
+                        Value: <strong>@State.LastEventSensor1?.Value</strong>
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        @State.LastEventSensor1?.Timestamp.ToString("HH:mm:ss")
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
         </MudItem>
-
         <MudItem xs="12" sm="6">
-            <MudTextField @bind-Value="Section2Text"
-                          Label="Section 2 (comma-separated)"
-                          Variant="Variant.Outlined"
-                          Placeholder="8, 9, 10, 11, 12, 13, 14"
-                          HelperText="Enter pin numbers separated by commas" />
-        </MudItem>
-        
-        <MudItem xs="12">
-            <MudPaper Class="pa-4 mt-4">
-                <MudButton Variant="Variant.Filled"
-                           Color="Color.Primary"
-                           DisableElevation="true"
-                           OnClick="SaveSettings"
-                           StartIcon="@Icons.Material.Filled.Save">
-                    Save Settings
-                </MudButton>
-                <MudButton Variant="Variant.Outlined"
-                           Color="Color.Default"
-                           Class="ml-2"
-                           OnClick="ResetSettings"
-                           StartIcon="@Icons.Material.Filled.Refresh">
-                    Reset
-                </MudButton>
-            </MudPaper>
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Color="Color.Primary">Sensor 2</MudText>
+                    <MudText Typo="Typo.body1">
+                        Value: <strong>@State.LastEventSensor2?.Value</strong>
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        @State.LastEventSensor2?.Timestamp.ToString("HH:mm:ss")
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
         </MudItem>
     </MudGrid>
-</MudForm>
+
+    <MudForm @ref="form">
+        <MudGrid>
+            <MudItem xs="12">
+                <MudPaper Class="pa-4 mt-4" Outlined="true">
+                    <MudText Typo="Typo.h5" Class="mb-4">Timing Settings</MudText>
+                    <MudGrid>
+                        <MudItem xs="12" sm="6" md="4">
+                            <MudNumericField @bind-Value="SmoothDuration"
+                                             Label="Smooth Duration"
+                                             Variant="Variant.Outlined"
+                                             Min="100"
+                                             Max="10_000"
+                                             Adornment="Adornment.End"
+                                             AdornmentText="ms" />
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6" md="4">
+                            <MudNumericField @bind-Value="HoldDuration"
+                                             Label="Hold Duration"
+                                             Variant="Variant.Outlined"
+                                             Min="1_000"
+                                             Adornment="Adornment.End"
+                                             AdornmentText="ms" />
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6" md="4">
+                            <MudNumericField @bind-Value="SensorDelay"
+                                             Label="Sensor Delay"
+                                             Variant="Variant.Outlined"
+                                             Min="100"
+                                             Max="10_000"
+                                             Adornment="Adornment.End"
+                                             AdornmentText="ms" />
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudPaper Class="pa-4 mt-4" Outlined="true">
+                    <MudText Typo="Typo.h5" Class="mb-4">Brightness Settings</MudText>
+                    <MudGrid>
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudNumericField @bind-Value="Steps"
+                                             Label="Steps"
+                                             Variant="Variant.Outlined"
+                                             Min="1"
+                                             Max="20" />
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudNumericField @bind-Value="MaxBrightness"
+                                             Label="Max Brightness"
+                                             Variant="Variant.Outlined"
+                                             Min="1"
+                                             Max="100"
+                                             Adornment="Adornment.End"
+                                             AdornmentText="%" />
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudNumericField @bind-Value="MinBrightness"
+                                             Label="Min Brightness"
+                                             Variant="Variant.Outlined"
+                                             Min="0"
+                                             Max="100"
+                                             Adornment="Adornment.End"
+                                             AdornmentText="%" />
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6" md="3">
+                            <MudNumericField @bind-Value="ProximityEventTreshold"
+                                             Label="Proximity Threshold"
+                                             Variant="Variant.Outlined"
+                                             Min="100"
+                                             Max="10_000"
+                                             Adornment="Adornment.End"
+                                             AdornmentText="ms" />
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudPaper Class="pa-4 mt-4" Outlined="true">
+                    <MudText Typo="Typo.h5" Class="mb-4">Section Configuration</MudText>
+                    <MudGrid>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="Section1Text"
+                                          Label="Section 1 (comma-separated)"
+                                          Variant="Variant.Outlined"
+                                          Placeholder="1, 2, 3, 4, 5, 6"
+                                          HelperText="Enter pin numbers separated by commas" />
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="Section2Text"
+                                          Label="Section 2 (comma-separated)"
+                                          Variant="Variant.Outlined"
+                                          Placeholder="8, 9, 10, 11, 12, 13, 14"
+                                          HelperText="Enter pin numbers separated by commas" />
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12">
+                <MudPaper Class="pa-4 mt-4">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               DisableElevation="true"
+                               OnClick="SaveSettings"
+                               Size="Size.Large"
+                               StartIcon="@Icons.Material.Filled.Save">
+                        Save Settings
+                    </MudButton>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    </MudForm>
+</MudContainer>
 
 @code {
     MudForm form = default!;
