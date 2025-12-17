@@ -77,22 +77,21 @@ public class ProximityEventHandler
         state.DecreaseCts = new CancellationTokenSource();
 
         // Only proceed if we need to increase brightness
-        if (state.CurrentBrightness == settings.MaxBrightness)
-        {
-            Console.WriteLine("Already max brightness returning..");
-            return;
-        }
+
 
         await state.Semaphore.WaitAsync();
         try
         {
             // Increase brightness smoothly (cannot be cancelled)
             Console.WriteLine($"Increaseing Brightness Smooth {settings.MaxBrightness}");
-            await _goveeClient.SetSegmentBrightnessSmoothAsync(
-                segments: section,
-                targetBrightness: settings.MaxBrightness,
-                duration: settings.SmoothDuration,
-                CancellationToken.None);
+            if (state.CurrentBrightness != settings.MaxBrightness)
+            {
+                await _goveeClient.SetSegmentBrightnessSmoothAsync(
+                    segments: section,
+                    targetBrightness: settings.MaxBrightness,
+                    duration: settings.SmoothDuration,
+                    CancellationToken.None);
+            }
 
             state.CurrentBrightness = settings.MaxBrightness;
 
