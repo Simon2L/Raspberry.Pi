@@ -17,12 +17,7 @@
                     <MudText Typo="Typo.body1">
                         Value: <strong>@State.LastEventSensor1?.Value</strong>
                     </MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">
-                        @if (State.LastEventSensor1 != null) {
-                            <MudIcon Color="Color.Default" Icon="@Icons.Material.Outlined.AccessTime"/> 
-                            @State.LastEventSensor1?.Timestamp.ToString("HH:mm:ss")
-                        }
-                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@State.LastEventSensor1?.Timestamp.ToString("HH:mm:ss")</MudText>
                 </MudCardContent>
             </MudCard>
         </MudItem>
@@ -33,14 +28,7 @@
                     <MudText Typo="Typo.body1">
                         Value: <strong>@State.LastEventSensor2?.Value</strong>
                     </MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">
-                        @State.LastEventSensor2?.Timestamp.ToString("HH:mm:ss")
-                        @if (State.LastEventSensor2 != null)
-                        {
-                            <MudIcon Color="Color.Default" Icon="@Icons.Material.Outlined.AccessTime" /> 
-                            @State.LastEventSensor2?.Timestamp.ToString("HH:mm:ss")
-                        }
-                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@State.LastEventSensor2?.Timestamp.ToString("HH:mm:ss")</MudText>
                 </MudCardContent>
             </MudCard>
         </MudItem>
