@@ -47,6 +47,7 @@ if (!app.Environment.IsDevelopment())
 
 //app.UseHttpsRedirection();
 
+/*
 using (var scope = app.Services.CreateScope())
 {
     var goveeClient = scope.ServiceProvider.GetService<GoveeClient>();
@@ -65,6 +66,7 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine("error while setting the brightness to 1 " + ex.Message);
     }
 }
+*/
 
 app.UseAntiforgery();
 
