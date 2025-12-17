@@ -162,7 +162,7 @@ public class GoveeClient(HttpClient httpClient, ISettingsService settingsService
         {
             type = "devices.capabilities.range",
             instance = "brightness",
-            brightness = brightness
+            value = brightness
         };
         await SendCommandAsync(capability);
         SetCurrentBrightness(brightness);
