@@ -1,14 +1,6 @@
 ﻿
 namespace Raspberry.Pi.Dashboard;
 
-public record ProximityEvent(Sensor Sensor, int Value, DateTime Timestamp);
-public enum Sensor
-{
-    None = 0,
-    Sensor1 = 1,
-    Sensor2 = 2,
-}
-
 public class ProximitySensorReaderBackgroundService : BackgroundService
 {
     private readonly Vcnl4010 _sensor1;

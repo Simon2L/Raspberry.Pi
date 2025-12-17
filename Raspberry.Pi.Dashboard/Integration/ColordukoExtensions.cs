@@ -1,4 +1,4 @@
-﻿namespace Raspberry.Pi.Dashboard;
+﻿namespace Raspberry.Pi.Dashboard.Integration;
 
 public static class ColorDukoExtensions
 {

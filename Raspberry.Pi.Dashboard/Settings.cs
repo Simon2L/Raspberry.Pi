@@ -8,11 +8,11 @@ public class Settings
     public TimeSpan SmoothDuration { get; set; } = TimeSpan.FromMilliseconds(5_000);
     public TimeSpan HoldDuration { get; set; } = TimeSpan.FromMilliseconds(5_000);
     public TimeSpan SensorDelay { get; set; } = TimeSpan.FromMilliseconds(1_000);
+    public int ProximityEventTreshold { get; set; } = 3_000;
 
     public int Steps { get; set; } = 1;
     public int MaxBrightness { get; set; } = 100;
     public int MinBrightness { get; set; } = 1;
-    public int ProximityEventTreshold { get; set; } = 3_000;
 }
 
 public interface ISettingsService
