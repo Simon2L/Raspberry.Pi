@@ -56,7 +56,7 @@ using (var scope = app.Services.CreateScope())
         if (goveeClient != null)
         {
             Console.WriteLine("Setting whole strip to 1");
-            await goveeClient.SetBrightnessAsync(1);
+            await goveeClient.SetBrightnessAsync(100);
             // await goveeClient.SetColorRgbAsync(new RGB(255, 0, 0));
         }
     }
