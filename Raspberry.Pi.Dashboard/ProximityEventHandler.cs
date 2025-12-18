@@ -31,9 +31,9 @@ public class ProximityEventHandler
         {
             { Sensor.Sensor1, new SensorState() },
             { Sensor.Sensor2, new SensorState() },
-            //{ Sensor.Sensor3, new SensorState() },
-            //{ Sensor.Sensor4, new SensorState() },
-            //{ Sensor.Sensor5, new SensorState() }
+            { Sensor.Sensor3, new SensorState() },
+            { Sensor.Sensor4, new SensorState() },
+            { Sensor.Sensor5, new SensorState() }
         };
     }
 
@@ -152,9 +152,9 @@ public class ProximityEventHandler
         {
             Sensor.Sensor1 => settings.Section1,
             Sensor.Sensor2 => settings.Section2,
-            //Sensor.Sensor3 => settings.Section3,
-            //Sensor.Sensor4 => settings.Section4,
-            //Sensor.Sensor5 => settings.Section5,
+            Sensor.Sensor3 => settings.Section3,
+            Sensor.Sensor4 => settings.Section4,
+            Sensor.Sensor5 => settings.Section5,
             _ => null
         };
     }
@@ -200,6 +200,10 @@ public class ProximityUiState
 
     public ProximityEvent? LastEventSensor1 { get; private set; }
     public ProximityEvent? LastEventSensor2 { get; private set; }
+    public ProximityEvent? LastEventSensor3 { get; private set; }
+    public ProximityEvent? LastEventSensor4 { get; private set; }
+    public ProximityEvent? LastEventSensor5 { get; private set; }
+    
 
     public event Action? OnChange;
 
@@ -216,8 +220,22 @@ public class ProximityUiState
             {
                 LastEventSensor2 = proximityEvent;
             }
-        }
 
+            if (proximityEvent.Sensor == Sensor.Sensor3)
+            {
+                LastEventSensor1 = proximityEvent;
+            }
+
+            if (proximityEvent.Sensor == Sensor.Sensor4)
+            {
+                LastEventSensor1 = proximityEvent;
+            }
+            
+            if (proximityEvent.Sensor == Sensor.Sensor5)
+            {
+                LastEventSensor1 = proximityEvent;
+            }                       
+        }
         OnChange?.Invoke();
     }
 }
