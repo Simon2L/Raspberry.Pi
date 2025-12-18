@@ -32,6 +32,68 @@
                 </MudCardContent>
             </MudCard>
         </MudItem>
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard Outlined="true">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Color="Color.Primary">Sensor 3</MudText>
+                    <MudText Typo="Typo.body1">
+                        Value: <strong>@State.LastEventSensor3?.Value</strong>
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@State.LastEventSensor3?.Timestamp.ToString("HH:mm:ss")</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" 
+                               Color="Color.Secondary" 
+                               Size="Size.Small"
+                               OnClick="() => SimulateSensor(Sensor.Sensor3)"
+                               StartIcon="@Icons.Material.Filled.PlayArrow">
+                        Test Sensor 3
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard Outlined="true">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Color="Color.Primary">Sensor 4</MudText>
+                    <MudText Typo="Typo.body1">
+                        Value: <strong>@State.LastEventSensor4?.Value</strong>
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@State.LastEventSensor4?.Timestamp.ToString("HH:mm:ss")</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" 
+                               Color="Color.Secondary" 
+                               Size="Size.Small"
+                               OnClick="() => SimulateSensor(Sensor.Sensor4)"
+                               StartIcon="@Icons.Material.Filled.PlayArrow">
+                        Test Sensor 4
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard Outlined="true">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6" Color="Color.Primary">Sensor 5</MudText>
+                    <MudText Typo="Typo.body1">
+                        Value: <strong>@State.LastEventSensor5?.Value</strong>
+                    </MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@State.LastEventSensor5?.Timestamp.ToString("HH:mm:ss")</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" 
+                               Color="Color.Secondary" 
+                               Size="Size.Small"
+                               OnClick="() => SimulateSensor(Sensor.Sensor5)"
+                               StartIcon="@Icons.Material.Filled.PlayArrow">
+                        Test Sensor 5
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
     </MudGrid>
 
     <MudForm @ref="form">
@@ -134,6 +196,47 @@
                                           Placeholder="8, 9, 10, 11, 12, 13, 14"
                                           HelperText="Enter pin numbers separated by commas" />
                         </MudItem>
+
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="Section3Text"
+                                          Label="Section 3 (Sensor 3)"
+                                          Variant="Variant.Outlined"
+                                          Placeholder="15, 16, 17, 18, 19, 20"
+                                          HelperText="Enter pin numbers separated by commas"
+                                          Disabled="@(!EnableSection3)" />
+                            <MudSwitch @bind-Value="EnableSection3" 
+                                       Color="Color.Primary" 
+                                       Label="Enable Section 3"
+                                       Class="mt-2" />
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="Section4Text"
+                                          Label="Section 4 (Sensor 4)"
+                                          Variant="Variant.Outlined"
+                                          Placeholder="21, 22, 23, 24, 25, 26"
+                                          HelperText="Enter pin numbers separated by commas"
+                                          Disabled="@(!EnableSection4)" />
+                            <MudSwitch @bind-Value="EnableSection4" 
+                                       Color="Color.Primary" 
+                                       Label="Enable Section 4"
+                                       Class="mt-2" />
+                        </MudItem>
+
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="Section5Text"
+                                          Label="Section 5 (Sensor 5)"
+                                          Variant="Variant.Outlined"
+                                          Placeholder="27, 28, 29, 30, 31, 32"
+                                          HelperText="Enter pin numbers separated by commas"
+                                          Disabled="@(!EnableSection5)" />
+                            <MudSwitch @bind-Value="EnableSection5" 
+                                       Color="Color.Primary" 
+                                       Label="Enable Section 5"
+                                       Class="mt-2" />
+                        </MudItem>                        
                     </MudGrid>
                 </MudPaper>
             </MudItem>
@@ -165,6 +268,12 @@
     private int ProximityEventTreshold { get; set; }
     private string Section1Text { get; set; } = string.Empty;
     private string Section2Text { get; set; } = string.Empty;
+    private string Section3Text { get; set; } = string.Empty;
+    private string Section4Text { get; set; } = string.Empty;
+    private string Section5Text { get; set; } = string.Empty;
+    private bool EnableSection3 { get; set; }
+    private bool EnableSection4 { get; set; }
+    private bool EnableSection5 { get; set; }
 
     protected override void OnInitialized()
     {
@@ -183,8 +292,22 @@
         MaxBrightness = settings.MaxBrightness;
         MinBrightness = settings.MinBrightness;
         ProximityEventTreshold = settings.ProximityEventTreshold;
+
         Section1Text = string.Join(", ", settings.Section1);
         Section2Text = string.Join(", ", settings.Section2);
+        Section3Text = settings.Section3 != null && settings.Section3.Count > 0 
+            ? string.Join(", ", settings.Section3) 
+            : string.Empty;
+        Section4Text = settings.Section4 != null && settings.Section4.Count > 0 
+            ? string.Join(", ", settings.Section4) 
+            : string.Empty;
+        Section5Text = settings.Section5 != null && settings.Section5.Count > 0 
+            ? string.Join(", ", settings.Section5) 
+            : string.Empty;
+
+        EnableSection3 = settings.Section3 != null && settings.Section3.Count > 0;
+        EnableSection4 = settings.Section4 != null && settings.Section4.Count > 0;
+        EnableSection5 = settings.Section5 != null && settings.Section5.Count > 0;
     }
 
     private async void OnStateChanged()
@@ -198,6 +321,20 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    private void SimulateSensor(Sensor sensor)
+    {
+        var settings = SettingsService.GetSettings();
+        var simulatedEvent = new ProximityEvent
+        {
+            Sensor = sensor,
+            Value = settings.ProximityEventTreshold + 3000, // Above threshold
+            Timestamp = DateTime.Now
+        };
+        
+        State.Update(simulatedEvent);
+        Snackbar.Add($"Simulated {sensor} trigger!", Severity.Info);
+    }
+
     private async Task SaveSettings()
     {
         await form.Validate();
@@ -208,6 +345,9 @@
             {
                 var section1 = ParseIntList(Section1Text);
                 var section2 = ParseIntList(Section2Text);
+                var section3 = EnableSection3 ? ParseIntList(Section3Text) : new List<int>();
+                var section4 = EnableSection4 ? ParseIntList(Section4Text) : new List<int>();
+                var section5 = EnableSection5 ? ParseIntList(Section5Text) : new List<int>();
 
                 SettingsService.UpdateSettings(settings =>
                 {
@@ -220,6 +360,9 @@
                     settings.ProximityEventTreshold = ProximityEventTreshold;
                     settings.Section1 = section1;
                     settings.Section2 = section2;
+                    settings.Section3 = section3;
+                    settings.Section4 = section4;
+                    settings.Section5 = section5;                    
                 });
 
                 Snackbar.Add("Settings saved successfully!", Severity.Success);
