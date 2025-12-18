@@ -203,7 +203,7 @@ public class ProximityUiState
     public ProximityEvent? LastEventSensor3 { get; private set; }
     public ProximityEvent? LastEventSensor4 { get; private set; }
     public ProximityEvent? LastEventSensor5 { get; private set; }
-    
+
 
     public event Action? OnChange;
 
@@ -211,30 +211,27 @@ public class ProximityUiState
     {
         lock (_lock)
         {
-            if (proximityEvent.Sensor == Sensor.Sensor1)
-            {
-                LastEventSensor1 = proximityEvent;
-            }
 
-            if (proximityEvent.Sensor == Sensor.Sensor2)
+            switch (proximityEvent.Sensor)
             {
-                LastEventSensor2 = proximityEvent;
+                case Sensor.Sensor1:
+                    LastEventSensor1 = proximityEvent;
+                    break;
+                case Sensor.Sensor2:
+                    LastEventSensor2 = proximityEvent;
+                    break;
+                case Sensor.Sensor3:
+                    LastEventSensor3 = proximityEvent;
+                    break;
+                case Sensor.Sensor4:
+                    LastEventSensor4 = proximityEvent;
+                    break;
+                case Sensor.Sensor5:
+                    LastEventSensor5 = proximityEvent;
+                    break;
+                default:
+                    break;
             }
-
-            if (proximityEvent.Sensor == Sensor.Sensor3)
-            {
-                LastEventSensor1 = proximityEvent;
-            }
-
-            if (proximityEvent.Sensor == Sensor.Sensor4)
-            {
-                LastEventSensor1 = proximityEvent;
-            }
-            
-            if (proximityEvent.Sensor == Sensor.Sensor5)
-            {
-                LastEventSensor1 = proximityEvent;
-            }                       
         }
         OnChange?.Invoke();
     }
