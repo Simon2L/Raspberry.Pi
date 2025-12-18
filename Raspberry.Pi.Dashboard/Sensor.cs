@@ -8,6 +8,6 @@ public enum Sensor
     Sensor2 = 2,
     Sensor2 = 3,
     Sensor2 = 4,
-    Sensor2 = 5,
+    Sensor2 = 5
 }
 
