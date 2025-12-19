@@ -1,4 +1,6 @@
 ﻿
+using MudBlazor;
+
 namespace Raspberry.Pi.Dashboard;
 
 public class ProximityEventHandler
@@ -42,6 +44,8 @@ public class ProximityEventHandler
         _state.Update(e);
         _ = HandleProximityEventAsync(e);
     }
+
+
 
     private async Task HandleProximityEventAsync(ProximityEvent e)
     {
@@ -198,11 +202,38 @@ public class ProximityUiState
 {
     private readonly Lock _lock = new();
 
-    public ProximityEvent? LastEventSensor1 { get; private set; }
-    public ProximityEvent? LastEventSensor2 { get; private set; }
-    public ProximityEvent? LastEventSensor3 { get; private set; }
-    public ProximityEvent? LastEventSensor4 { get; private set; }
-    public ProximityEvent? LastEventSensor5 { get; private set; }
+    private DateTime? _startTimestamp;
+    public TimeSpan TimeLabelSpacing { get; private set; } = TimeSpan.FromMinutes(1);
+
+
+    public List<TimeSeriesChartSeries> Series { get; private set; } = 
+        [
+            new TimeSeriesChartSeries() { Index = 1, Name = "Sensor 1", Data = [], LineDisplayType = LineDisplayType.Line, ShowDataMarkers = true },
+            new TimeSeriesChartSeries() { Index = 2, Name = "Sensor 2", Data = [], LineDisplayType = LineDisplayType.Line, ShowDataMarkers = true },
+            new TimeSeriesChartSeries() { Index = 3, Name = "Sensor 3", Data = [], LineDisplayType = LineDisplayType.Line, ShowDataMarkers = true },
+            new TimeSeriesChartSeries() { Index = 4, Name = "Sensor 4", Data = [], LineDisplayType = LineDisplayType.Line, ShowDataMarkers = true },
+            new TimeSeriesChartSeries() { Index = 5, Name = "Sensor 5", Data = [], LineDisplayType = LineDisplayType.Line, ShowDataMarkers = true }
+        ];
+
+    public List<ChartSeries> BarChartSeries { get; private set; } =
+    [
+        new ChartSeries() { Name = "Sensor 1", Data = [0], ShowDataMarkers = true },
+        new ChartSeries() { Name = "Sensor 2", Data = [0] },
+        new ChartSeries() { Name = "Sensor 3", Data = [0] },
+        new ChartSeries() { Name = "Sensor 4", Data = [0] },
+        new ChartSeries() { Name = "Sensor 5", Data = [0] },
+    ];
+    public string[] BarChartXAxisLabels { get; private set; } = ["Events"];
+
+    public Dictionary<Sensor, ProximityEvent?> LastSensorEventMap { get; private set; } =
+        new Dictionary<Sensor, ProximityEvent?>
+        {
+            { Sensor.Sensor1, null },
+            { Sensor.Sensor2, null },
+            { Sensor.Sensor3, null },
+            { Sensor.Sensor4, null },
+            { Sensor.Sensor5, null }
+        };
 
 
     public event Action? OnChange;
@@ -211,28 +242,21 @@ public class ProximityUiState
     {
         lock (_lock)
         {
-
-            switch (proximityEvent.Sensor)
-            {
-                case Sensor.Sensor1:
-                    LastEventSensor1 = proximityEvent;
-                    break;
-                case Sensor.Sensor2:
-                    LastEventSensor2 = proximityEvent;
-                    break;
-                case Sensor.Sensor3:
-                    LastEventSensor3 = proximityEvent;
-                    break;
-                case Sensor.Sensor4:
-                    LastEventSensor4 = proximityEvent;
-                    break;
-                case Sensor.Sensor5:
-                    LastEventSensor5 = proximityEvent;
-                    break;
-                default:
-                    break;
-            }
+            _startTimestamp ??= DateTime.Now;
+            LastSensorEventMap[proximityEvent.Sensor] = proximityEvent;
+            BarChartSeries[(int)proximityEvent.Sensor - 1].Data[0]++;
+            Series[(int)proximityEvent.Sensor - 1].Data.Add(new(proximityEvent.Timestamp, proximityEvent.Value));
+            UpdateTimeLabelSpacing();
         }
         OnChange?.Invoke();
     }
+    private void UpdateTimeLabelSpacing()
+    {
+        if (_startTimestamp is null)
+            return;
+
+        var elapsed = DateTime.Now - _startTimestamp.Value;
+        TimeLabelSpacing = TimeSpan.FromTicks(elapsed.Ticks / 10);
+    }
+
 }

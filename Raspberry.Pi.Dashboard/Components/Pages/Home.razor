@@ -2,144 +2,55 @@
 @inject ProximityUiState State
 @inject ISettingsService SettingsService
 @inject ISnackbar Snackbar
+@inject ProximitySensorReaderBackgroundService Reader
 @implements IDisposable
 
 <PageTitle>Dashboard</PageTitle>
 
-<MudContainer Class="px-4 pt-2" Style="padding-top: 0;">
-    <MudText Typo="Typo.h3" GutterBottom="true">Dashboard</MudText>
+<MudContainer Class="px-2 pt-2" Style="padding-top: 0;">
+
+    <MudText Class="mb-2" Typo="Typo.h4">Sensors</MudText>
 
     <MudGrid Class="mb-4">
-        <MudItem xs="12" sm="6">
-            <MudCard Outlined="true">
-                <MudCardContent>
-                    <MudText Typo="Typo.h6" Color="Color.Primary">Sensor 1</MudText>
-                    @if (State.LastEventSensor1 != null)
-                    {
-                        <MudText Typo="Typo.body1">
-                            Value: <strong>@State.LastEventSensor1?.Value</strong>
-                        </MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">Timestamp: @State.LastEventSensor1?.Timestamp.ToString("HH:mm:ss")</MudText>
-                    }
-                    else
-                    {
-                        <MudSkeleton />
-                        <MudSkeleton />
-                    }
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-        <MudItem xs="12" sm="6">
-            <MudCard Outlined="true">
-                <MudCardContent>
-                    <MudText Typo="Typo.h6" Color="Color.Primary">Sensor 2</MudText>
-                    @if (State.LastEventSensor2 != null)
-                    {
-                        <MudText Typo="Typo.body1">
-                            Value: <strong>@State.LastEventSensor2?.Value</strong>
-                        </MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">Timestamp: @State.LastEventSensor2?.Timestamp.ToString("HH:mm:ss")</MudText>
-                    }
-                    else
-                    {
-                        <MudSkeleton />
-                        <MudSkeleton />
-                    }
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-        <MudItem xs="12" sm="6" md="4">
-            <MudCard Outlined="true">
-                <MudCardContent>
-                    <MudText Typo="Typo.h6" Color="Color.Primary">Sensor 3</MudText>
-                    @if (State.LastEventSensor3 != null)
-                    {
-                        <MudText Typo="Typo.body1">
-                            Value: <strong>@State.LastEventSensor3?.Value</strong>
-                        </MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">Timestamp: @State.LastEventSensor3?.Timestamp.ToString("HH:mm:ss")</MudText>
-                    }
-                    else
-                    {
-                        <MudSkeleton />
-                        <MudSkeleton />
-                    }
-                </MudCardContent>
-                <MudCardActions>
-                    <MudButton Variant="Variant.Filled"
-                               Color="Color.Secondary"
-                               Size="Size.Small"
-                               OnClick="() => SimulateSensor(Sensor.Sensor3)"
-                               StartIcon="@Icons.Material.Filled.PlayArrow">
-                        Trigger
-                    </MudButton>
-                </MudCardActions>
-            </MudCard>
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="4">
-            <MudCard Outlined="true">
-                <MudCardContent>
-                    <MudText Typo="Typo.h6" Color="Color.Primary">Sensor 4</MudText>
-                    @if (State.LastEventSensor4 != null)
-                    {
-                        <MudText Typo="Typo.body1">
-                            Value: <strong>@State.LastEventSensor4?.Value</strong>
-                        </MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">Timestamp: @State.LastEventSensor4?.Timestamp.ToString("HH:mm:ss")</MudText>
-                    }
-                    else
-                    {
-                        <MudSkeleton />
-                        <MudSkeleton />
-                    }
-                </MudCardContent>
-                <MudCardActions>
-                    <MudButton Variant="Variant.Filled"
-                               Color="Color.Secondary"
-                               Size="Size.Small"
-                               OnClick="() => SimulateSensor(Sensor.Sensor4)"
-                               StartIcon="@Icons.Material.Filled.PlayArrow">
-                        Trigger
-                    </MudButton>
-                </MudCardActions>
-            </MudCard>
-        </MudItem>
-
-        <MudItem xs="12" sm="6" md="4">
-            <MudCard Outlined="true">
-                <MudCardContent>
-                    <MudText Typo="Typo.h6" Color="Color.Primary">Sensor 5</MudText>
-                    @if (State.LastEventSensor5 != null)
-                    {
-                        <MudText Typo="Typo.body1">
-                            Value: <strong>@State.LastEventSensor5?.Value</strong>
-                        </MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">Timestamp: @State.LastEventSensor5?.Timestamp.ToString("HH:mm:ss")</MudText>
-                    }
-                    else
-                    {
-                        <MudSkeleton />
-                        <MudSkeleton />
-                    }
-                </MudCardContent>
-                <MudCardActions>
-                    <MudButton Variant="Variant.Filled"
-                               Color="Color.Secondary"
-                               Size="Size.Small"
-                               OnClick="() => SimulateSensor(Sensor.Sensor5)"
-                               StartIcon="@Icons.Material.Filled.PlayArrow">
-                        Trigger
-                    </MudButton>
-                </MudCardActions>
-            </MudCard>
-        </MudItem>
+        @foreach (var sensor in Enum.GetValues<Sensor>())
+        {
+            var sensorCached = sensor;
+            if (sensorCached == Sensor.None) continue;
+            <MudItem xs="12" sm="6" md="4">
+                <MudCard Outlined="true">
+                    <MudCardContent>
+                        <MudText Typo="Typo.h5" Color="Color.Primary">@sensorCached.ToString()</MudText>
+                        @if (State.LastSensorEventMap[sensor] != null)
+                        {
+                            <MudText Typo="Typo.body1">Value: <strong>@State.LastSensorEventMap[sensorCached]?.Value</strong></MudText>
+                            <MudText Typo="Typo.body1">Timestamp: <strong>@State.LastSensorEventMap[sensorCached]?.Timestamp.ToString("HH:mm:ss")</strong></MudText>
+                        }
+                        else
+                        {
+                            <MudSkeleton />
+                            <MudSkeleton />
+                        }
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Secondary"
+                                   Size="Size.Small"
+                                   OnClick="() => SimulateSensor(sensorCached)"
+                                   StartIcon="@Icons.Material.Filled.PlayArrow">
+                            Trigger
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
     </MudGrid>
+
+    <MudText Class="mb-2" Typo="Typo.h4">Settings</MudText>
 
     <MudForm @ref="form">
         <MudGrid>
             <MudItem xs="12">
-                <MudPaper Class="pa-4 mt-2" Outlined="true">
+                <MudPaper Class="pa-4" Outlined="true">
                     <MudText Typo="Typo.h5" Class="mb-4">Timing Settings</MudText>
                     <MudGrid>
                         <MudItem xs="12" sm="6" md="4">
@@ -175,7 +86,7 @@
             </MudItem>
 
             <MudItem xs="12">
-                <MudPaper Class="pa-4 mt-2" Outlined="true">
+                <MudPaper Class="pa-4" Outlined="true">
                     <MudText Typo="Typo.h5" Class="mb-4">Brightness Settings</MudText>
                     <MudGrid>
                         <MudItem xs="12" sm="6" md="3">
@@ -218,11 +129,11 @@
             </MudItem>
 
             <MudItem xs="12">
-                <MudPaper Class="pa-4 mt-2" Outlined="true">
+                <MudPaper Class="pa-4" Outlined="true">
                     <MudText Typo="Typo.h5" Class="mb-4">Section Configuration</MudText>
                     <MudGrid>
 
-                        <MudItem xs="12" sm="6">
+                        <MudItem xs="12" sm="6" md="4">
                             <MudSelect T="int" Label="Section 1" MultiSelection="true" @bind-SelectedValues="Section1" Variant="Variant.Outlined">
                                 @foreach (var segment in _segments)
                                 {
@@ -231,7 +142,7 @@
                             </MudSelect>
                         </MudItem>
 
-                        <MudItem xs="12" sm="6">
+                        <MudItem xs="12" sm="6" md="4">
                             <MudSelect T="int" Label="Section 2" MultiSelection="true" @bind-SelectedValues="Section2" Variant="Variant.Outlined">
                                 @foreach (var segment in _segments)
                                 {
@@ -239,7 +150,7 @@
                                 }
                             </MudSelect>
                         </MudItem>
-                        <MudItem xs="12" sm="6">
+                        <MudItem xs="12" sm="6" md="4">
                             <MudSelect T="int" Label="Section 3 (Sensor 3)" MultiSelection="true" @bind-SelectedValues="Section3" Variant="Variant.Outlined" Disabled="@(!EnableSection3)">
                                 @foreach (var segment in _segments)
                                 {
@@ -252,7 +163,7 @@
                                        Class="mt-2" />
                         </MudItem>
 
-                        <MudItem xs="12" sm="6">
+                        <MudItem xs="12" sm="6" md="4">
                             <MudSelect T="int" Label="Section 4 (Sensor 4)" MultiSelection="true" @bind-SelectedValues="Section4" Variant="Variant.Outlined" Disabled="@(!EnableSection4)">
                                 @foreach (var segment in _segments)
                                 {
@@ -265,7 +176,7 @@
                                        Class="mt-2" />
                         </MudItem>
 
-                        <MudItem xs="12" sm="6">
+                        <MudItem xs="12" sm="6" md="4">
                             <MudSelect T="int" Label="Section 5 (Sensor 5)" MultiSelection="true" @bind-SelectedValues="Section5" Variant="Variant.Outlined" Disabled="@(!EnableSection5)">
                                 @foreach (var segment in _segments)
                                 {
@@ -280,12 +191,11 @@
                     </MudGrid>
                 </MudPaper>
             </MudItem>
-
         </MudGrid>
 
-        <MudGrid>
+        <MudGrid Class="mb-4">
             <MudItem xs="12">
-                <MudPaper Class="pa-4 mt-2">
+                <MudPaper Class="pa-4 mt-4 d-flex justify-content-center" Outlined="true">
                     <MudButton Variant="Variant.Filled"
                                Color="Color.Primary"
                                DisableElevation="true"
@@ -298,27 +208,26 @@
             </MudItem>
         </MudGrid>
     </MudForm>
+
+    <MudText Class="mb-2" Typo="Typo.h4">Data</MudText>
+
+    <MudPaper Class="doc-section-component-container pa-4 mb-4" Outlined="true">
+        <MudText Typo="Typo.h5">Total Events</MudText>
+        <MudChart ChartType="ChartType.StackedBar" ChartSeries="@State.BarChartSeries" XAxisLabels="@State.BarChartXAxisLabels"></MudChart>
+    </MudPaper>
+
+    <MudPaper Class="doc-section-component-container pa-4" Outlined="true">
+        <MudText Typo="Typo.h5">Proximity Timestamp</MudText>
+        <MudTimeSeriesChart ChartSeries="@State.Series"
+                            CanHideSeries="true"
+                            TimeLabelSpacing="@State.TimeLabelSpacing"
+                            DataMarkerTooltipTimeLabelFormat="HH:mm:ss" />
+    </MudPaper>
 </MudContainer>
 
-<MudPaper Class="doc-section-component-container">
-    <MudChart ChartType="ChartType.Bar" ChartSeries="@_series" @bind-SelectedIndex="_index" XAxisLabels="@_xAxisLabels" Width="@_width" Height="@_height" AxisChartOptions="_axisChartOptions"></MudChart>
-</MudPaper>
 
 
 @code {
-    private int _index = -1; //default value cannot be 0 -> first selectedindex is 0.
-    private string _width = "650px";
-    private string _height = "350px";
-    private AxisChartOptions _axisChartOptions = new AxisChartOptions();
-
-    private List<ChartSeries> _series = new List<ChartSeries>()
-    {
-        new ChartSeries() { Name = "United States", Data = new double[] { 40, 20, 25, 27, 46, 60, 48, 80, 15 } },
-        new ChartSeries() { Name = "Germany", Data = new double[] { 19, 24, 35, 13, 28, 15, 13, 16, 31 } },
-        new ChartSeries() { Name = "Sweden", Data = new double[] { 8, 6, 11, 13, 4, 16, 10, 16, 18 } },
-    };
-    private string[] _xAxisLabels = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep" };
-
     MudForm form = default!;
     private int SmoothDuration { get; set; }
     private int HoldDuration { get; set; }
@@ -383,8 +292,6 @@
         var settings = SettingsService.GetSettings();
         var rnd = Random.Shared.Next(55_000);
         var simulatedEvent = new ProximityEvent(sensor, settings.ProximityEventTreshold + rnd, DateTime.Now);
-
-        // Trigger EventHandler also
 
         State.Update(simulatedEvent);
         Snackbar.Add($"Simulated {sensor} trigger!", Severity.Info);
