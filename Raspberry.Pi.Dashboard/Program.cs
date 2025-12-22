@@ -28,7 +28,6 @@ builder.Services.AddHostedService<ProximityUIHandler>();
 builder.Services.AddSingleton<ISettingsService, SettingsService>();
 builder.Services.AddSingleton<IApplicationStateService, ApplicationStateService>();
 builder.Services.AddSingleton<IProximityEventPublisher, ProximityEventPublisher>();
-builder.Services.AddSingleton<ISensorStatePublisher, SensorStatePublisher>();
 
 //sites/9296/departures
 
