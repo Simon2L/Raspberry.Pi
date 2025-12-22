@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Raspberry.Pi.Dashboard;
+namespace Raspberry.Pi.Dashboard.Domain;
 
 public class GoveeDevicesResponse
 {

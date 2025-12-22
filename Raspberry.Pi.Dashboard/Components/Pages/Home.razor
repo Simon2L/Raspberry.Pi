@@ -1,8 +1,8 @@
 ﻿@page "/"
-@inject ProximityUiState State
+@inject IApplicationStateService AppState
 @inject ISettingsService SettingsService
 @inject ISnackbar Snackbar
-@inject ProximitySensorReaderBackgroundService Reader
+@inject IProximityEventPublisher ProximityEventPublisher
 @implements IDisposable
 
 <PageTitle>Dashboard</PageTitle>
@@ -15,35 +15,217 @@
         @foreach (var sensor in Enum.GetValues<Sensor>())
         {
             var sensorCached = sensor;
-            if (sensorCached == Sensor.None) continue;
+            var sensorState = AppState.GetSensorState(sensorCached);
+
             <MudItem xs="12" sm="6" md="4">
                 <MudCard Outlined="true">
-                    <MudCardContent>
-                        <MudText Typo="Typo.h5" Color="Color.Primary">@sensorCached.ToString()</MudText>
-                        @if (State.LastSensorEventMap[sensor] != null)
+                    <MudCardHeader Class="pb-0">
+                        <CardHeaderContent>
+                            <MudContainer Class="d-flex align-center justify-space-between pa-0">
+
+                                <div class="d-flex align-center gap-2">
+
+
+                                    <MudAvatar Color="Color.Primary" Variant="Variant.Filled">
+                                        <MudIcon Icon="@Icons.Material.Filled.Sensors" />
+                                    </MudAvatar>
+
+                                    <div>
+                                        <MudText Typo="Typo.h5" Class="mb-0">
+                                            @GetSensorName(sensorCached)
+                                        </MudText>
+
+                                        @if (sensorState.Activity == SensorActivity.Holding)
+                                        {
+                                            var holdDuration = SettingsService.GetSettings().HoldDuration;
+                                            var elapsed = DateTime.Now - sensorState.LastActivity;
+                                            var remaining = holdDuration - elapsed;
+
+                                            @if (remaining.TotalSeconds > 0)
+                                            {
+                                                <MudBadge Content="@remaining.ToString(@"mm\:ss")" Color="Color.Secondary" Origin="Origin.CenterRight">
+                                                    <MudText Class="mr-2" Typo="Typo.caption" Color="Color.Secondary">
+                                                        @GetSensorActivityText(sensorState.Activity)
+                                                    </MudText>
+                                                </MudBadge>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                                @GetSensorActivityText(sensorState.Activity)
+                                            </MudText>
+                                        }
+
+                                    </div>
+                                </div>
+
+                                @if (sensorCached <= Sensor.Sensor2)
+                                {
+                                    @if (sensorState.IsConnected)
+                                    {
+                                        <MudTooltip Text="Sensor connected">
+                                            <MudIcon Icon="@Icons.Material.Filled.Wifi"
+                                                     Color="Color.Success"
+                                                     Size="Size.Medium" />
+                                        </MudTooltip>
+                                    }
+                                    else
+                                    {
+                                        <MudTooltip Text="Sensor disconnected">
+                                            <MudIcon Icon="@Icons.Material.Filled.WifiOff"
+                                                     Color="Color.Error"
+                                                     Size="Size.Medium" />
+                                        </MudTooltip>
+                                    }
+                                }
+                                else
+                                {
+                                    <MudTooltip Text="Simulated sensor">
+                                        <MudIcon Icon="@Icons.Material.Filled.Memory"
+                                                 Color="Color.Warning"
+                                                 Size="Size.Medium" />
+                                    </MudTooltip>
+                                }
+
+                            </MudContainer>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+
+                    <MudCardContent Class="pt-2">
+                        @if (sensorState.LastEvent != null)
                         {
-                            <MudText Typo="Typo.body1">Value: <strong>@State.LastSensorEventMap[sensorCached]?.Value</strong></MudText>
-                            <MudText Typo="Typo.body1">Timestamp: <strong>@State.LastSensorEventMap[sensorCached]?.Timestamp.ToString("HH:mm:ss")</strong></MudText>
+                            <MudText Typo="Typo.body2"
+                                     Color="Color.Default"
+                                     Class="mb-1">
+                                Last Detection
+                            </MudText>
+
+                            <MudPaper Elevation="0" Class="pa-2 d-flex justify-space-between align-center mb-3">
+                                <div class="d-flex align-center gap-2">
+                                    <MudIcon Icon="@Icons.Material.Filled.Speed"
+                                             Size="Size.Small"
+                                             Color="Color.Info" />
+                                    <MudText Typo="Typo.body2">
+                                        <strong>@sensorState.LastEvent?.Value</strong>
+                                    </MudText>
+                                </div>
+                                <div class="d-flex align-center gap-2">
+                                    <MudIcon Icon="@Icons.Material.Filled.Schedule"
+                                             Size="Size.Small"
+                                             Color="Color.Info" />
+                                    <MudText Typo="Typo.body2">
+                                        @sensorState.LastEvent?.Timestamp.ToString("HH:mm:ss")
+                                    </MudText>
+                                </div>
+                            </MudPaper>
+
+                            <MudText Typo="Typo.body2"
+                                     Color="Color.Default"
+                                     Class="mb-1">
+                                Event Count
+                            </MudText>
+
+                            <MudChip T="string" Icon="@Icons.Material.Filled.DataUsage"
+                                     Color="Color.Info"
+                                     Size="Size.Small"
+                                     Variant="Variant.Filled"
+                                     Class="mb-3">
+                                @sensorState.EventCount events
+                            </MudChip>
                         }
                         else
                         {
-                            <MudSkeleton />
-                            <MudSkeleton />
+                            <MudSkeleton SkeletonType="SkeletonType.Rectangle"
+                                         Height="33px"
+                                         Class="mb-3 rounded" />
+                            <MudSkeleton SkeletonType="SkeletonType.Rectangle"
+                                         Height="33px"
+                                         Class="mb-3 rounded" />
+                            <MudSkeleton SkeletonType="SkeletonType.Rectangle"
+                                         Height="34px"
+                                         Class="mb-3 rounded" />
+                        }
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-space-between align-center mb-1">
+                                <MudText Typo="Typo.body2" Color="Color.Default">
+                                    Brightness
+                                </MudText>
+
+                                <MudChip T="string" Size="Size.Small"
+                                         Color="@GetBrightnessColor(sensorState.CurrentBrightness)"
+                                         Variant="Variant.Text">
+                                    @sensorState.CurrentBrightness%
+                                </MudChip>
+                            </div>
+
+                            <MudProgressLinear Value="@sensorState.CurrentBrightness"
+                                               Max="100"
+                                               Size="Size.Large"
+                                               Rounded="true"
+                                               Color="@GetBrightnessColor(sensorState.CurrentBrightness)"
+                                               Striped="@(sensorState.Activity == SensorActivity.Increasing || sensorState.Activity == SensorActivity.Decreasing)" />
+                        </div>
+
+                        @if (sensorState.ControlledSegments.Any())
+                        {
+                            <div>
+                                <MudText Typo="Typo.body2"
+                                         Color="Color.Default"
+                                         Class="mb-2 d-flex align-center">
+                                    <MudIcon Icon="@Icons.Material.Filled.Lightbulb"
+                                             Size="Size.Small"
+                                             Class="mr-1" />
+                                    Connected LED Segments (@sensorState.ControlledSegments.Count)
+                                </MudText>
+
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach (var seg in sensorState.ControlledSegments)
+                                    {
+                                        var segmentState = AppState.GetSegmentState(seg);
+
+                                        <MudTooltip Text="@GetSegmentTooltip(seg, segmentState)">
+                                            <MudChip T="string" Size="Size.Small"
+                                                     Color="@(segmentState.Brightness > 1 ? Color.Warning : Color.Default)"
+                                                     Variant="Variant.Outlined">
+                                                @seg
+                                            </MudChip>
+                                        </MudTooltip>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Info"
+                                      Dense="true"
+                                      Class="mt-2">
+                                No segments configured
+                            </MudAlert>
                         }
                     </MudCardContent>
-                    <MudCardActions>
+
+                    <MudCardActions Class="d-flex justify-space-between">
                         <MudButton Variant="Variant.Filled"
-                                   Color="Color.Secondary"
+                                   Color="Color.Primary"
                                    Size="Size.Small"
-                                   OnClick="() => SimulateSensor(sensorCached)"
-                                   StartIcon="@Icons.Material.Filled.PlayArrow">
-                            Trigger
+                                   FullWidth="true"
+                                   StartIcon="@Icons.Material.Filled.PlayArrow"
+                                   OnClick="() => SimulateSensor(sensorCached)">
+                            Trigger Event
                         </MudButton>
                     </MudCardActions>
+
                 </MudCard>
             </MudItem>
         }
     </MudGrid>
+
+    @code {
+
+    }
+
 
     <MudText Class="mb-2" Typo="Typo.h4">Settings</MudText>
 
@@ -134,7 +316,7 @@
                     <MudGrid>
 
                         <MudItem xs="12" sm="6" md="4">
-                            <MudSelect T="int" Label="Section 1" MultiSelection="true" @bind-SelectedValues="Section1" Variant="Variant.Outlined">
+                            <MudSelect T="int" Label="@GetSensorName(Sensor.Sensor1)" MultiSelection="true" @bind-SelectedValues="Section1" Variant="Variant.Outlined">
                                 @foreach (var segment in _segments)
                                 {
                                     <MudSelectItem T="int" Value="@segment">@segment</MudSelectItem>
@@ -143,7 +325,7 @@
                         </MudItem>
 
                         <MudItem xs="12" sm="6" md="4">
-                            <MudSelect T="int" Label="Section 2" MultiSelection="true" @bind-SelectedValues="Section2" Variant="Variant.Outlined">
+                            <MudSelect T="int" Label="@GetSensorName(Sensor.Sensor2)" MultiSelection="true" @bind-SelectedValues="Section2" Variant="Variant.Outlined">
                                 @foreach (var segment in _segments)
                                 {
                                     <MudSelectItem T="int" Value="@segment">@segment</MudSelectItem>
@@ -151,42 +333,30 @@
                             </MudSelect>
                         </MudItem>
                         <MudItem xs="12" sm="6" md="4">
-                            <MudSelect T="int" Label="Section 3 (Sensor 3)" MultiSelection="true" @bind-SelectedValues="Section3" Variant="Variant.Outlined" Disabled="@(!EnableSection3)">
+                            <MudSelect T="int" Label="@GetSensorName(Sensor.Sensor3)" MultiSelection="true" @bind-SelectedValues="Section3" Variant="Variant.Outlined">
                                 @foreach (var segment in _segments)
                                 {
                                     <MudSelectItem T="int" Value="@segment">@segment</MudSelectItem>
                                 }
                             </MudSelect>
-                            <MudSwitch @bind-Value="EnableSection3"
-                                       Color="Color.Primary"
-                                       Label="Enable Section 3"
-                                       Class="mt-2" />
                         </MudItem>
 
                         <MudItem xs="12" sm="6" md="4">
-                            <MudSelect T="int" Label="Section 4 (Sensor 4)" MultiSelection="true" @bind-SelectedValues="Section4" Variant="Variant.Outlined" Disabled="@(!EnableSection4)">
+                            <MudSelect T="int" Label="@GetSensorName(Sensor.Sensor4)" MultiSelection="true" @bind-SelectedValues="Section4" Variant="Variant.Outlined">
                                 @foreach (var segment in _segments)
                                 {
                                     <MudSelectItem T="int" Value="@segment">@segment</MudSelectItem>
                                 }
                             </MudSelect>
-                            <MudSwitch @bind-Value="EnableSection4"
-                                       Color="Color.Primary"
-                                       Label="Enable Section 4"
-                                       Class="mt-2" />
                         </MudItem>
 
                         <MudItem xs="12" sm="6" md="4">
-                            <MudSelect T="int" Label="Section 5 (Sensor 5)" MultiSelection="true" @bind-SelectedValues="Section5" Variant="Variant.Outlined" Disabled="@(!EnableSection5)">
+                            <MudSelect T="int" Label="@GetSensorName(Sensor.Sensor5)" MultiSelection="true" @bind-SelectedValues="Section5" Variant="Variant.Outlined">
                                 @foreach (var segment in _segments)
                                 {
                                     <MudSelectItem T="int" Value="@segment">@segment</MudSelectItem>
                                 }
                             </MudSelect>
-                            <MudSwitch @bind-Value="EnableSection5"
-                                       Color="Color.Primary"
-                                       Label="Enable Section 5"
-                                       Class="mt-2" />
                         </MudItem>
                     </MudGrid>
                 </MudPaper>
@@ -197,12 +367,19 @@
             <MudItem xs="12">
                 <MudPaper Class="pa-4 mt-4 d-flex justify-content-center" Outlined="true">
                     <MudButton Variant="Variant.Filled"
+                               Class="mr-4"
                                Color="Color.Primary"
-                               DisableElevation="true"
                                OnClick="SaveSettings"
                                Size="Size.Large"
                                StartIcon="@Icons.Material.Filled.Save">
                         Save Settings
+                    </MudButton>
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Primary"
+                               OnClick="ResetSettings"
+                               Size="Size.Large"
+                               StartIcon="@Icons.Material.Filled.Refresh">
+                        Reset To Default
                     </MudButton>
                 </MudPaper>
             </MudItem>
@@ -213,17 +390,19 @@
 
     <MudPaper Class="doc-section-component-container pa-4 mb-4" Outlined="true">
         <MudText Typo="Typo.h5">Total Events</MudText>
-        <MudChart ChartType="ChartType.StackedBar" ChartSeries="@State.BarChartSeries" XAxisLabels="@State.BarChartXAxisLabels"></MudChart>
+        <MudChart ChartType="ChartType.StackedBar" ChartSeries="@AppState.BarChartSeries" XAxisLabels="@AppState.BarChartXAxisLabels"></MudChart>
     </MudPaper>
 
-    <MudPaper Class="doc-section-component-container pa-4" Outlined="true">
+    <MudPaper Class="doc-section-component-container pa-4 mb-4" Outlined="true">
         <MudText Typo="Typo.h5">Proximity Timestamp</MudText>
-        <MudTimeSeriesChart ChartSeries="@State.Series"
+        <MudTimeSeriesChart ChartSeries="@AppState.ChartSeries"
                             CanHideSeries="true"
-                            TimeLabelSpacing="@State.TimeLabelSpacing"
+                            TimeLabelSpacing="@AppState.TimeLabelSpacing"
                             DataMarkerTooltipTimeLabelFormat="HH:mm:ss" />
     </MudPaper>
 </MudContainer>
+
+
 
 
 
@@ -243,14 +422,22 @@
     private IEnumerable<int> Section3 { get; set; } = new HashSet<int>();
     private IEnumerable<int> Section4 { get; set; } = new HashSet<int>();
     private IEnumerable<int> Section5 { get; set; } = new HashSet<int>();
-    private bool EnableSection3 { get; set; }
-    private bool EnableSection4 { get; set; }
-    private bool EnableSection5 { get; set; }
+
+    private System.Threading.Timer? _timer;
 
     protected override void OnInitialized()
     {
+        _timer = new System.Threading.Timer(
+            async _ => await InvokeAsync(StateHasChanged),
+            null,
+            TimeSpan.Zero,
+            TimeSpan.FromMilliseconds(100)
+        );
+
         LoadSettings();
-        State.OnChange += OnStateChanged;
+        AppState.OnChartDataChanged += OnStateChanged;
+        AppState.OnSensorStateChanged += (sensor) => OnStateChanged();
+        AppState.OnSegmentStateChanged += (segmentId) => OnStateChanged();
         SettingsService.SettingsChanged += OnSettingsChanged;
     }
 
@@ -265,15 +452,11 @@
         MinBrightness = settings.MinBrightness;
         ProximityEventTreshold = settings.ProximityEventTreshold;
 
-        Section1 = settings.Section1.ToHashSet();
-        Section2 = settings.Section2.ToHashSet();
-        Section3 = settings.Section3.ToHashSet();
-        Section4 = settings.Section4.ToHashSet();
-        Section5 = settings.Section5.ToHashSet();
-
-        EnableSection3 = settings.Section3 != null && settings.Section3.Count > 0;
-        EnableSection4 = settings.Section4 != null && settings.Section4.Count > 0;
-        EnableSection5 = settings.Section5 != null && settings.Section5.Count > 0;
+        Section1 = settings.Section1.Order().ToHashSet();
+        Section2 = settings.Section2.Order().ToHashSet();
+        Section3 = settings.Section3.Order().ToHashSet();
+        Section4 = settings.Section4.Order().ToHashSet();
+        Section5 = settings.Section5.Order().ToHashSet();
     }
 
     private async void OnStateChanged()
@@ -287,14 +470,18 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private void SimulateSensor(Sensor sensor)
+    private async Task SimulateSensor(Sensor sensor)
     {
         var settings = SettingsService.GetSettings();
         var rnd = Random.Shared.Next(55_000);
         var simulatedEvent = new ProximityEvent(sensor, settings.ProximityEventTreshold + rnd, DateTime.Now);
+        ProximityEventPublisher.Publish(simulatedEvent);
+    }
 
-        State.Update(simulatedEvent);
-        Snackbar.Add($"Simulated {sensor} trigger!", Severity.Info);
+    private async Task ResetSettings()
+    {
+        SettingsService.ResetToDefaultSettings();
+        Snackbar.Add("Settings saved successfully!", Severity.Success);
     }
 
     private async Task SaveSettings()
@@ -314,11 +501,11 @@
                     settings.MaxBrightness = MaxBrightness;
                     settings.MinBrightness = MinBrightness;
                     settings.ProximityEventTreshold = ProximityEventTreshold;
-                    settings.Section1 = Section1.ToList();
-                    settings.Section2 = Section2.ToList();
-                    settings.Section3 = Section3.ToList();
-                    settings.Section4 = Section4.ToList();
-                    settings.Section5 = Section5.ToList();
+                    settings.Section1 = Section1.Order().ToList();
+                    settings.Section2 = Section2.Order().ToList();
+                    settings.Section3 = Section3.Order().ToList();
+                    settings.Section4 = Section4.Order().ToList();
+                    settings.Section5 = Section5.Order().ToList();
                 });
 
                 Snackbar.Add("Settings saved successfully!", Severity.Success);
@@ -334,9 +521,48 @@
         }
     }
 
+    private string GetSensorActivityText(SensorActivity activity) =>
+    activity switch
+    {
+        SensorActivity.Idle => "Idle",
+        SensorActivity.Increasing => "Increasing brightness...",
+        SensorActivity.Holding => "Holding at max",
+        SensorActivity.Decreasing => "Decreasing...",
+        _ => "Unknown"
+    };
+
+    private Color GetBrightnessColor(int brightness) =>
+    brightness switch
+    {
+        >= 75 => Color.Success,
+        >= 50 => Color.Info,
+        >= 25 => Color.Warning,
+        _ => Color.Default
+    };
+
+    private string GetSensorName(Sensor sensor) =>
+    sensor switch
+    {
+        Sensor.Sensor1 => "Sensor 1",
+        Sensor.Sensor2 => "Sensor 2",
+        Sensor.Sensor3 => "Sensor 3",
+        Sensor.Sensor4 => "Sensor 4",
+        Sensor.Sensor5 => "Sensor 5",
+        _ => "Unknown"
+    };
+
+    private string GetSegmentTooltip(int segment, LedSegmentState segmentState)
+    {
+        var sensors = string.Join(", ", segmentState.ControlledBySensors);
+        return $"Segment {segment} - Brightness: {segmentState.Brightness}% - Controlled by: {sensors}";
+    }
+
     public void Dispose()
     {
-        State.OnChange -= OnStateChanged;
+        _timer?.Dispose();
+        AppState.OnChartDataChanged -= OnStateChanged;
+        AppState.OnSensorStateChanged -= (sensor) => OnStateChanged();
+        AppState.OnSegmentStateChanged -= (segmentId) => OnStateChanged();
         SettingsService.SettingsChanged -= OnSettingsChanged;
     }
 }

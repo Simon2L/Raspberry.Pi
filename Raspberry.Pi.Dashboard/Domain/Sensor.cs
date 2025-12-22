@@ -1,9 +1,7 @@
-﻿
-namespace Raspberry.Pi.Dashboard;
+﻿namespace Raspberry.Pi.Dashboard.Domain;
 
 public enum Sensor
 {
-    None = 0,
     Sensor1 = 1,
     Sensor2 = 2,
     Sensor3 = 3,

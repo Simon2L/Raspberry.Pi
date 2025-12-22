@@ -1,7 +1,10 @@
 using MudBlazor.Services;
 using Raspberry.Pi.Dashboard;
 using Raspberry.Pi.Dashboard.Components;
+using Raspberry.Pi.Dashboard.Events.Publishers;
+using Raspberry.Pi.Dashboard.Handlers;
 using Raspberry.Pi.Dashboard.Integration;
+using Raspberry.Pi.Dashboard.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,11 +21,14 @@ builder.Services.AddHttpClient<GoveeClient>(client =>
     client.DefaultRequestHeaders.Add("Govee-API-Key", "560fbc36-952c-42f7-925b-a7151394f3c5");
 });
 
-builder.Services.AddSingleton<ProximitySensorReaderBackgroundService>();
-builder.Services.AddHostedService(sp => sp.GetRequiredService<ProximitySensorReaderBackgroundService>());
-builder.Services.AddSingleton<ProximityEventHandler>();
-builder.Services.AddSingleton<ProximityUiState>();
+builder.Services.AddHostedService<ProximitySensorReaderBackgroundService>();
+builder.Services.AddHostedService<ProximityEventHandler>();
+builder.Services.AddHostedService<ProximityUIHandler>();
+
 builder.Services.AddSingleton<ISettingsService, SettingsService>();
+builder.Services.AddSingleton<IApplicationStateService, ApplicationStateService>();
+builder.Services.AddSingleton<IProximityEventPublisher, ProximityEventPublisher>();
+builder.Services.AddSingleton<ISensorStatePublisher, SensorStatePublisher>();
 
 //sites/9296/departures
 
@@ -32,6 +38,7 @@ builder.Services.AddMudServices();
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
 
 builder.Services.AddMemoryCache();
 
@@ -73,8 +80,5 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
-
-app.Services.GetRequiredService<ProximityEventHandler>();
-
 
 app.Run();
