@@ -8,9 +8,39 @@
 {
     <MudAlert Severity="Severity.Error">Failed to load depatures. Please try again later.</MudAlert>
 }
-<MudText Typo="Typo.h4" GutterBottom="true">@departuresResponse?.LastUpdated.ToString("HH:mm")</MudText>
+<MudText Class="mt-3" Typo="Typo.h4" GutterBottom="true">@departuresResponse?.LastUpdated.ToString("HH:mm")</MudText>
 
-<MudDataGrid Loading="@isLoading" Items="departuresResponse?.Departures">
+<MudGrid>
+    @foreach (var departure in Departures.Values)
+    {
+        <MudItem xs="12" sm="6" md="4" lg="3">
+            <MudPaper Outlined="true">
+                <MudCardHeader Class="d-flex align-center justify-space-between">
+                    <MudText Typo="Typo.h5">@departure.Destination</MudText>
+                    <div class="d-flex align-center gap-1">
+                        @if (departure.Line.TransportMode == "METRO")
+                        {
+                            <MudIcon Color="Color.Error" Icon="@Icons.Material.Filled.Train"></MudIcon>
+                        }
+                        else if (departure.Line.TransportMode == "BUS")
+                        {
+                            <MudIcon Color="Color.Info" Icon="@Icons.Material.Filled.DirectionsBus"></MudIcon>
+                        }
+                        <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled">@DisplayTime(departure)</MudChip>
+                    </div>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText>Scheduled: @departure.Scheduled.ToShortTimeString()</MudText>
+                    <MudText>Expected: @departure.Expected.ToShortTimeString()</MudText>
+                </MudCardContent>
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
+
+<MudDivider Class="my-4" />
+
+<MudDataGrid Outlined="true" Loading="@isLoading" Items="departuresResponse?.Departures">
     <Columns>
         <PropertyColumn Property="x => x.Line.TransportMode" Title="Typ" />
         <PropertyColumn Property="x => x.Destination" Title="Destination" />
@@ -21,10 +51,12 @@
     </Columns>
 </MudDataGrid>
 
+
 @code {
     private DeparturesResponse? departuresResponse;
     private bool isLoading = true;
     private bool loadError = false;
+    private Dictionary<string, Departure> Departures = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -32,6 +64,9 @@
         try
         {
             departuresResponse = await SLApiSerivce.GetDeparturesAsync(Sites.Zinken);
+            var result = departuresResponse?.Departures.GroupBy(d => d.Destination)
+                .ToDictionary(d => d.Key, d => d.OrderBy(d => d.Expected).First());
+            Departures = result ?? [];
         }
         catch
         {
@@ -41,5 +76,15 @@
         {
             isLoading = false;
         }
+    }
+
+    private string DisplayTime(Departure departure)
+    {
+        var timeSpan = departure.Expected - DateTime.Now;
+        if (timeSpan.TotalMinutes < 1)
+        {
+            return "Nu";
+        }
+        return $"{(int)timeSpan.TotalMinutes} min";
     }
 }

@@ -5,7 +5,6 @@ using Raspberry.Pi.Dashboard.Services;
 
 namespace Raspberry.Pi.Dashboard;
 
-// 3. Implementation
 public class ApplicationStateService : IApplicationStateService
 {
     private readonly Lock _lock = new();

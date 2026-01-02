@@ -10,8 +10,8 @@ public interface ISLApiService
 
 public enum Sites
 {
-    Zinken = 9302,
-    Kista = 9296,
+    Zinken = 9296,
+    Kista = 9302,
     Telefonplan = 9263
 }
 
