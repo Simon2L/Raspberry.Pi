@@ -19,9 +19,6 @@ public class GoveeClient(
 
     public async Task SendCommandAsync(object capability)
     {
-        await Task.Delay(50);
-        return;
-
         var payload = new
         {
             requestId = Guid.NewGuid().ToString(),
